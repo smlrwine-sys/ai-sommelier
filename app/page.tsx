@@ -787,9 +787,9 @@ function PortalView({ setMode, setActiveStoreId, isAuthenticated, setIsAuthentic
   const [stores, setStores] = useState<any[]>([]);
   const [passwordInput, setPasswordInput] = useState('');
   
- // セキュリティ対策：環境変数から取得するように変更（GitHub上で見えなくなります）
+  // セキュリティ対策：.env.local からパスワードを取得（未設定時は sommelier2026 を予備で使用）
   const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'sommelier2026';
-  
+
   useEffect(() => { if (isAuthenticated) supabase.from('stores').select('*').then(({data}) => setStores(data || [])); }, [isAuthenticated]);
 
   if (!isAuthenticated) {
@@ -810,15 +810,23 @@ function PortalView({ setMode, setActiveStoreId, isAuthenticated, setIsAuthentic
       <h1 className="text-3xl font-black mb-8 tracking-widest uppercase">System Portal</h1>
       <div className="w-full max-w-md space-y-4">
         <button onClick={() => setMode('admin_master')} className="w-full py-4 bg-indigo-600 rounded-xl font-bold flex items-center justify-center gap-2"><Building size={20}/> マスター管理画面へ</button>
-        <div className="border-t border-white/20 pt-4 mt-4 space-y-2 text-left">
-          <p className="text-sm opacity-60 mb-2 font-bold ml-1">各店舗の料理・設定画面へ</p>
+        <div className="border-t border-white/20 pt-6 mt-6 space-y-4 text-left">
+          <p className="text-sm opacity-60 font-bold ml-1">登録店舗一覧</p>
           {stores.map(s => (
-            <button key={s.id} onClick={() => { setActiveStoreId(s.id); setMode('admin_store'); }} className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg font-bold text-left px-4 flex justify-between">
-              {s.name} <ChevronLeft className="rotate-180 opacity-50"/>
-            </button>
+            <div key={s.id} className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3 shadow-lg">
+              <div className="font-bold text-lg">{s.name}</div>
+              <div className="flex gap-3">
+                <button onClick={() => { setActiveStoreId(s.id); setMode('admin_store'); }} className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-colors">
+                  <Settings size={14}/> 管理画面
+                </button>
+                {/* 該当の店舗ID（store_id）を付与してカスタマー画面へ直接遷移させる */}
+                <button onClick={() => { window.location.href = `/?store_id=${s.id}`; }} className="flex-1 py-2.5 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-colors">
+                  <Sparkles size={14}/> カスタマー画面
+                </button>
+              </div>
+            </div>
           ))}
         </div>
-        <button onClick={() => { window.location.href = '/'; }} className="w-full py-4 mt-8 border border-white/30 rounded-xl font-bold opacity-70 hover:opacity-100">カスタマー画面を確認する</button>
       </div>
     </div>
   );
