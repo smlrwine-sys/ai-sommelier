@@ -2001,8 +2001,9 @@ function CustomerApp() {
 
           {/* メッセージ */}
           <div className="mt-8 text-center relative z-10">
-            <h2 className="text-xl font-black font-serif tracking-[0.4em] ml-[0.4em] animate-pulse text-amber-500 drop-shadow-md uppercase">
-              Analyzing...
+            {/* 文言を日本語に変更。文字間隔(tracking)を日本語に合わせて調整。 */}
+            <h2 className="text-lg font-black tracking-widest animate-pulse text-amber-500 drop-shadow-md">
+              あなたに最適なワインを診断中…
             </h2>
           </div>
         </div>
