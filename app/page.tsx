@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+// reCAPTCHAをインポート（追加）
+import ReCAPTCHA from "react-google-recaptcha";
 import { 
   ChevronLeft, MapPin, Sparkles, Store, Utensils, Heart, ThumbsUp, Quote, Grape, Leaf, ChefHat, 
   Building, Wine, Plus, Trash2, Save, Settings, Hand, Smile, ArrowRight, MessageCircle, Bookmark
@@ -156,9 +158,10 @@ const labelClass = "block text-xs font-bold text-slate-500 mb-1";
       <div className="sm:col-span-2 p-4 bg-slate-50 rounded-xl border border-slate-200">
         <label className={labelClass}>オプションON/OFF</label>
         <div className="flex flex-wrap gap-4 mt-2">
-          {Object.entries({has_palm_reading:'手相診断', has_face_reading:'人相診断', has_reviews:'Google口コミ', has_likes:'いいねボタン', has_comment_ticker:'コメント表示', show_menu_tags:'今日の献立', show_recommendations:'おすすめ商品'}).map(([k,v]) => {
+          {/* ↓修正：show_scenes:'シーン検索' を追加し、デフォルトをONに */}
+          {Object.entries({has_palm_reading:'手相診断', has_face_reading:'人相診断', has_reviews:'Google口コミ', has_likes:'いいねボタン', has_comment_ticker:'コメント表示', show_menu_tags:'今日の献立', show_recommendations:'おすすめ商品', show_scenes:'シーン検索'}).map(([k,v]) => {
             const optObj = typeof form.options === 'string' ? JSON.parse(form.options || '{}') : (form.options || {});
-            const defaultOn = ['has_reviews', 'has_likes', 'has_comment_ticker', 'show_menu_tags', 'show_recommendations'].includes(k);
+            const defaultOn = ['has_reviews', 'has_likes', 'has_comment_ticker', 'show_menu_tags', 'show_recommendations', 'show_scenes'].includes(k);
             const isChecked = optObj[k] !== undefined ? optObj[k] : defaultOn;
             return (
               <label key={k} className="flex items-center gap-1 text-xs font-bold">
@@ -839,6 +842,7 @@ function CustomerApp() {
   const [commentForm, setCommentForm] = useState({ nickname: '', comment: '' });
   const [approvedComments, setApprovedComments] = useState<any[]>([]);
   const [mySelections, setMySelections] = useState<any[]>([]);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null); // ←追加：reCAPTCHA用の状態
 
   useEffect(() => {
     async function fetchData() {
@@ -978,8 +982,15 @@ function CustomerApp() {
   const submitComment = async () => {
     if (!commentForm.nickname || !commentForm.comment) return alert("入力してください");
     if (commentForm.comment.length > 100 || /(http|https|www)/i.test(commentForm.comment)) return alert("制限エラー");
+    if (!captchaToken) return alert("ロボットでないことを確認してください（チェックボックスにチェックを入れてください）"); // ←追加：ロボットチェック
+
     await supabase.from('wine_comments').insert([{ jan_code: resultWine.jan_code, store_id: store.id, nickname: commentForm.nickname, comment: commentForm.comment, is_approved: true }]);
-    alert("投稿しました！"); setApprovedComments([...approvedComments, { ...commentForm, id: Date.now() }]); setShowCommentModal(false); setCommentForm({ nickname: '', comment: '' });
+    alert("投稿しました！"); 
+    // ↓修正：created_at の現在時刻を追加して Invalid Date を解消
+    setApprovedComments([...approvedComments, { ...commentForm, id: Date.now(), created_at: new Date().toISOString() }]); 
+    setShowCommentModal(false); 
+    setCommentForm({ nickname: '', comment: '' });
+    setCaptchaToken(null); // ←投稿後にトークンをリセット
   };
 
   if (!store) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-amber-500 font-bold tracking-widest animate-pulse uppercase">Loading Cellar...</div>;
@@ -987,7 +998,8 @@ function CustomerApp() {
 
   // 追加：保存されたオプションを安全にオブジェクトとして取得
   const optObj = typeof store.options === 'string' ? JSON.parse(store.options || '{}') : (store.options || {});
-  const options = { has_palm_reading: false, has_face_reading: false, has_reviews: true, has_likes: true, has_comment_ticker: true, show_menu_tags: true, show_recommendations: true, ...optObj };
+  // ↓修正：show_scenes をデフォルトのオプション設定に追加
+  const options = { has_palm_reading: false, has_face_reading: false, has_reviews: true, has_likes: true, has_comment_ticker: true, show_menu_tags: true, show_recommendations: true, show_scenes: true, ...optObj };
 
   return (
     <div className={`min-h-screen font-sans transition-colors duration-700 ${tClass.bg} ${tClass.text}`}>
@@ -1302,26 +1314,28 @@ function CustomerApp() {
               </div>
             </section>
 
-            {/* STEP 02: シーンから選ぶ（デザインの高級化） */}
-            <section className="space-y-6">
-              <div className="flex justify-between items-end border-b border-[#E5E0D8] pb-2">
-                <h3 className="text-xl font-serif font-bold text-[#1A1A1A]">シーンから選ぶ</h3>
-                <span className="text-[10px] text-[#A82B3B] font-black tracking-widest uppercase">Step 02</span>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                {(store.business_type === 'restaurant' ? SCENES_RESTAURANT : SCENES_RETAIL).map(s => (
-                  <button key={s} onClick={() => setSearchParams({...searchParams, scene: s})} 
-                    className={`h-40 rounded-3xl flex flex-col items-center justify-center transition-all duration-500 shadow-sm border-2 ${
-                      searchParams.scene === s 
-                        ? 'bg-[#0A1F11] text-white border-[#0A1F11] shadow-xl scale-105 z-10' 
-                        : 'bg-[#F3F0EC] text-[#1A1A1A] border-transparent opacity-70 hover:opacity-100'
-                    }`}>
-                    <span className="text-lg font-serif font-bold tracking-tight">{s}</span>
-                    <div className={`w-8 h-[1.5px] mt-4 transition-colors ${searchParams.scene === s ? 'bg-amber-400' : 'bg-black/10'}`} />
-                  </button>
-                ))}
-              </div>
-            </section>
+            {/* STEP 02: シーンから選ぶ（オプションONの時のみ表示） */}
+            {options.show_scenes !== false && (
+              <section className="space-y-6 text-left">
+                <div className="flex justify-between items-end border-b border-[#E5E0D8] pb-2">
+                  <h3 className="text-xl font-serif font-bold text-[#1A1A1A]">シーンから選ぶ</h3>
+                  <span className="text-[10px] text-[#A82B3B] font-black tracking-widest uppercase">Step 02</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {(store.business_type === 'restaurant' ? SCENES_RESTAURANT : SCENES_RETAIL).map(s => (
+                    <button key={s} onClick={() => setSearchParams({...searchParams, scene: s})} 
+                      className={`h-40 rounded-3xl flex flex-col items-center justify-center transition-all duration-500 shadow-sm border-2 ${
+                        searchParams.scene === s 
+                          ? 'bg-[#0A1F11] text-white border-[#0A1F11] shadow-xl scale-105 z-10' 
+                          : 'bg-[#F3F0EC] text-[#1A1A1A] border-transparent opacity-70 hover:opacity-100'
+                      }`}>
+                      <span className="text-lg font-serif font-bold tracking-tight">{s}</span>
+                      <div className={`w-8 h-[1.5px] mt-4 transition-colors ${searchParams.scene === s ? 'bg-amber-400' : 'bg-black/10'}`} />
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* STEP 03: タグ検索（配色の統一） */}
             <section className="space-y-6">
@@ -1559,10 +1573,11 @@ function CustomerApp() {
                <p className="relative z-10 leading-loose font-serif text-xl italic opacity-95">「{resultWine.comment}」</p>
             </div>
 
-            {/* レビュー */}
+           {/* レビュー */}
             <section className="space-y-8 text-left">
               <h3 className="text-xl font-serif font-bold text-[#1A1A1A] border-b border-[#E5E0D8] pb-2">レビュー</h3>
-              <div className="space-y-8">
+              {/* ↓修正：3件程度でスクロールするように高さを制限し、スクロールバーを隠す */}
+              <div className="space-y-8 max-h-[320px] overflow-y-auto pr-2 hide-scrollbar">
                 {approvedComments.length > 0 ? approvedComments.map((c, i) => (
                   <div key={i} className="space-y-2 border-b border-gray-100 last:border-0 pb-6 last:pb-0">
                     <div className="flex justify-between items-center text-xs">
@@ -1782,6 +1797,15 @@ function CustomerApp() {
             </h3>
             <input placeholder="ニックネーム" value={commentForm.nickname} onChange={e => setCommentForm({...commentForm, nickname: e.target.value})} className="w-full p-4 rounded-xl border border-[#E5E0D8] bg-[#FAF9F6] text-[#1A1A1A]" />
             <textarea placeholder="このワインの感想を教えてください" value={commentForm.comment} onChange={e => setCommentForm({...commentForm, comment: e.target.value})} className="w-full p-4 rounded-xl border border-[#E5E0D8] bg-[#FAF9F6] h-32 text-[#1A1A1A]" />
+            
+            {/* ↓追加：Google reCAPTCHAコンポーネント */}
+            <div className="flex justify-center scale-90 origin-left">
+              <ReCAPTCHA 
+                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""} 
+                onChange={(token) => setCaptchaToken(token)} 
+              />
+            </div>
+
             <div className="flex gap-3 pt-2">
               <button onClick={submitComment} className="flex-1 py-4 bg-[#A82B3B] text-white font-bold rounded-xl shadow-lg hover:bg-[#8E2533] transition-colors">送信する</button>
               <button onClick={() => setShowCommentModal(false)} className="px-6 py-4 bg-gray-100 font-bold rounded-xl text-gray-500 hover:bg-gray-200 transition-colors">閉じる</button>
