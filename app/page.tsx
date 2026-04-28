@@ -339,10 +339,23 @@ function AdminMasterView({ setMode }: any) {
 
   // --- 保存・更新・削除 共通ロジック ---
   const saveStore = async (data: any, id?: string) => {
-    const action = id ? supabase.from('stores').update(data).eq('id', id) : supabase.from('stores').insert([data]);
+    // 修正：更新の際、データの中にIDや作成日時が含まれているとエラーになる場合があるため、それらを除いたデータを作成する
+    const { id: _, created_at: __, ...updateData } = data;
+
+    // idがある場合はupdateDataを使い、新規の場合は元のdataを使う
+    const action = id 
+      ? supabase.from('stores').update(updateData).eq('id', id) 
+      : supabase.from('stores').insert([data]);
+
     const { error } = await action;
-    if (error) alert(error.message);
-    else { alert('完了しました'); setIsAddingStore(false); setEditingStore(null); loadMasterData(); }
+    if (error) {
+      alert("保存エラー: " + error.message);
+    } else {
+      alert('完了しました');
+      setIsAddingStore(false);
+      setEditingStore(null);
+      loadMasterData(); // 画面のデータを最新に更新
+    }
   };
 
   const saveWine = async (data: any, id?: string) => {
