@@ -852,108 +852,123 @@ function PortalView({ setMode, setActiveStoreId, isAuthenticated, setIsAuthentic
 
 // 【4】カスタマー向け アプリ本体
 function CustomerApp() {
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [animType, setAnimType] = useState('normal'); 
-  const [wines, setWines] = useState<any[]>([]);
-  const [store, setStore] = useState<any>(null);
-  const [dishes, setDishes] = useState<any[]>([]);
-  const [retailTags, setRetailTags] = useState<any[]>([]); // 追加：献立タグを入れる箱
-  const [view, setView] = useState<'top' | 'search' | 'result' | 'my_selection' | 'ranking'>('top');
-  const [activeRankingTab, setActiveRankingTab] = useState('scene'); 
-  const [activeSubTab, setActiveSubTab] = useState(''); 
-  const [activeTagTab, setActiveTagTab] = useState(''); 
-  const [searchParams, setSearchParams] = useState({ colorValue: 50, scene: '', tag: '', type: '', menu: '' });
-  const [resultWine, setResultWine] = useState<any>(null);
-  const [showCommentModal, setShowCommentModal] = useState(false);
-  const [commentForm, setCommentForm] = useState({ nickname: '', comment: '' });
-  const [approvedComments, setApprovedComments] = useState<any[]>([]);
-  const [mySelections, setMySelections] = useState<any[]>([]);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  // ↓追加：カウントアップ表示用の状態
-  const [displayScore, setDisplayScore] = useState(0);
-  const [likedWines, setLikedWines] = useState<string[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [animType, setAnimType] = useState('normal'); 
+  const [wines, setWines] = useState<any[]>([]);
+  // ★修正：初期値を undefined に変更（ローディング中とエラーを区別するため）
+  const [store, setStore] = useState<any>(undefined);
+  const [dishes, setDishes] = useState<any[]>([]);
+  const [retailTags, setRetailTags] = useState<any[]>([]); // 追加：献立タグを入れる箱
+  const [view, setView] = useState<'top' | 'search' | 'result' | 'my_selection' | 'ranking'>('top');
+  const [activeRankingTab, setActiveRankingTab] = useState('scene'); 
+  const [activeSubTab, setActiveSubTab] = useState(''); 
+  const [activeTagTab, setActiveTagTab] = useState(''); 
+  const [searchParams, setSearchParams] = useState({ colorValue: 50, scene: '', tag: '', type: '', menu: '' });
+  const [resultWine, setResultWine] = useState<any>(null);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [commentForm, setCommentForm] = useState({ nickname: '', comment: '' });
+  const [approvedComments, setApprovedComments] = useState<any[]>([]);
+  const [mySelections, setMySelections] = useState<any[]>([]);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // ↓追加：カウントアップ表示用の状態
+  const [displayScore, setDisplayScore] = useState(0);
+  const [likedWines, setLikedWines] = useState<string[]>([]);
 
-  // ↓追加：診断結果になった時にスコアを0からターゲット値までカウントアップさせる処理
-  useEffect(() => {
-    if (view === 'result' && resultWine) {
-      setDisplayScore(0);
-      let start = 0;
-      // 診断ロジックで計算されたスコア、なければ95〜99のランダム値をターゲットにする
-      const targetScore = resultWine.match_score || (Math.floor(Math.random() * 5) + 95);
-      const end = targetScore;
-      const duration = 1500; // 1.5秒かけてカウント
-      const timer = setInterval(() => {
-        start += 2;
-        if (start >= end) {
-          setDisplayScore(end);
-          clearInterval(timer);
-        } else {
-          setDisplayScore(start);
-        }
-      }, duration / (end / 2));
-      return () => clearInterval(timer);
-    }
-  }, [view, resultWine]);
+  // ↓追加：診断結果になった時にスコアを0からターゲット値までカウントアップさせる処理
+  useEffect(() => {
+    if (view === 'result' && resultWine) {
+      setDisplayScore(0);
+      let start = 0;
+      // 診断ロジックで計算されたスコア、なければ95〜99のランダム値をターゲットにする
+      const targetScore = resultWine.match_score || (Math.floor(Math.random() * 5) + 95);
+      const end = targetScore;
+      const duration = 1500; // 1.5秒かけてカウント
+      const timer = setInterval(() => {
+        start += 2;
+        if (start >= end) {
+          setDisplayScore(end);
+          clearInterval(timer);
+        } else {
+          setDisplayScore(start);
+        }
+      }, duration / (end / 2));
+      return () => clearInterval(timer);
+    }
+  }, [view, resultWine]);
 
-  useEffect(() => {
-    async function fetchData() {
-      let currentStore = null;
-      const params = new URLSearchParams(window.location.search);
-      const storeId = params.get('store_id');
-      const { data: st } = await supabase.from('stores').select('*').eq('id', storeId || '').single();
-      currentStore = st || (await supabase.from('stores').select('*').limit(1).single()).data;
-      setStore(currentStore);
+  useEffect(() => {
+    async function fetchData() {
+      let currentStore = null;
+      const params = new URLSearchParams(window.location.search);
+      const storeId = params.get('store_id');
+      
+      // ★修正：store_id がURLに無い場合は null をセットして処理を中断する
+      if (!storeId) {
+        setStore(null);
+        return;
+      }
 
-      const v = params.get('view');
-      if (v === 'ranking') setView('ranking');
+      // ★修正：store_id を使ってお店を検索。見つからなければ null になる。
+      const { data: st } = await supabase.from('stores').select('*').eq('id', storeId).single();
+      
+      if (!st) {
+        setStore(null);
+        return;
+      }
+      
+      currentStore = st;
+      setStore(currentStore);
 
-      const { data: ds } = await supabase.from('dishes').select('*').eq('store_id', currentStore.id);
-      setDishes(ds || []);
+      const v = params.get('view');
+      if (v === 'ranking') setView('ranking');
 
-      // データベースから本物のタグを取得
-      const { data: tags } = await supabase.from('retail_menu_tags').select('*').eq('store_id', currentStore.id).order('created_at', { ascending: true });
-      setRetailTags(tags || []);
+      const { data: ds } = await supabase.from('dishes').select('*').eq('store_id', currentStore.id);
+      setDishes(ds || []);
 
-      const { data: inventory } = await supabase.from('store_inventory').select('*').eq('store_id', currentStore.id);
-      const { data: allWines } = await supabase.from('wines').select('*');
-      
-      const displayWines = inventory && inventory.length > 0 
-        ? inventory.map(inv => {
-            const master = allWines?.find(w => String(w.jan_code).trim() === String(inv.jan_code).trim());
-            return master ? { ...master, bottle_price: inv.bottle_price, glass_price: inv.glass_price } : null;
-          }).filter(w => w !== null)
-        : allWines || [];
-      setWines(displayWines);
+      // データベースから本物のタグを取得
+      const { data: tags } = await supabase.from('retail_menu_tags').select('*').eq('store_id', currentStore.id).order('created_at', { ascending: true });
+      setRetailTags(tags || []);
 
-      // 保存済みワイン（マイセラー）の読み込み
-      const saved = localStorage.getItem('sommelier_my_selection');
-      if (saved) setMySelections(JSON.parse(saved));
+      const { data: inventory } = await supabase.from('store_inventory').select('*').eq('store_id', currentStore.id);
+      const { data: allWines } = await supabase.from('wines').select('*');
+      
+      const displayWines = inventory && inventory.length > 0 
+        ? inventory.map(inv => {
+            const master = allWines?.find(w => String(w.jan_code).trim() === String(inv.jan_code).trim());
+            return master ? { ...master, bottle_price: inv.bottle_price, glass_price: inv.glass_price } : null;
+          }).filter(w => w !== null)
+        : allWines || [];
+      setWines(displayWines);
 
-      // 自分がどのワインに「いいね」したかの記録を読み込む
-      const liked = localStorage.getItem('sommelier_liked_wines');
-      if (liked) setLikedWines(JSON.parse(liked));
+      // 保存済みワイン（マイセラー）の読み込み
+      const saved = localStorage.getItem('sommelier_my_selection');
+      if (saved) setMySelections(JSON.parse(saved));
 
-      const wineJan = params.get('jan');
-      const urlScore = params.get('score'); // ←追加：URLからスコアを取得
+      // 自分がどのワインに「いいね」したかの記録を読み込む
+      const liked = localStorage.getItem('sommelier_liked_wines');
+      if (liked) setLikedWines(JSON.parse(liked));
 
-      if (wineJan) {
-        const matched = allWines?.find(w => String(w.jan_code).trim() === wineJan);
-        if (matched) {
-          const inv = inventory?.find(i => String(i.jan_code).trim() === wineJan);
-          const finalWine = inv ? { ...matched, bottle_price: inv.bottle_price, glass_price: inv.glass_price } : matched;
-          
-          // ←追加：URLにスコアがあれば、それを最終スコアとして上書きする
-          if (urlScore) {
-            finalWine.match_score = parseInt(urlScore, 10);
-          }
-          
-          setResultWine(finalWine);
-          setView('result');
-        }
-      }
-    }
-    fetchData();
-  }, []);
+      const wineJan = params.get('jan');
+      const urlScore = params.get('score'); // ←追加：URLからスコアを取得
+
+      if (wineJan) {
+        const matched = allWines?.find(w => String(w.jan_code).trim() === wineJan);
+        if (matched) {
+          const inv = inventory?.find(i => String(i.jan_code).trim() === wineJan);
+          const finalWine = inv ? { ...matched, bottle_price: inv.bottle_price, glass_price: inv.glass_price } : matched;
+          
+          // ←追加：URLにスコアがあれば、それを最終スコアとして上書きする
+          if (urlScore) {
+            finalWine.match_score = parseInt(urlScore, 10);
+          }
+          
+          setResultWine(finalWine);
+          setView('result');
+        }
+      }
+    }
+    fetchData();
+  }, []);
 
   useEffect(() => {
     if (resultWine && resultWine.jan_code) {
@@ -1132,12 +1147,32 @@ function CustomerApp() {
     localStorage.setItem('sommelier_my_selection', JSON.stringify(updated));
     alert("マイセラーに保存しました！");
   };
+// ★修正：undefined（通信中）の場合はローディング画面
+  if (store === undefined) {
+    return <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center text-[#A82B3B] font-bold tracking-widest animate-pulse uppercase">Loading Cellar...</div>;
+  }
 
-  if (!store) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-amber-500 font-bold tracking-widest animate-pulse uppercase">Loading Cellar...</div>;
-  const tClass = THEMES[store.theme] || THEMES.luxury;
+  // ★追加：null（店舗が見つからない、URLエラー）の場合はエラー画面
+  if (store === null) {
+    return (
+      <div className="min-h-screen bg-[#FAF9F6] flex flex-col items-center justify-center p-6 text-center text-[#1A1A1A]">
+        <div className="space-y-4">
+          <p className="text-xs font-black tracking-[0.3em] opacity-60 uppercase">今日飲みたいワインがすぐに見つかる</p>
+          <h1 className="text-3xl font-serif font-bold text-[#A82B3B]">ワイン診断</h1>
+        </div>
+        <div className="mt-12 p-8 bg-white border border-[#E5E0D8] rounded-3xl shadow-sm">
+          <p className="text-sm font-bold opacity-80 leading-relaxed">
+            URLに誤りがあります。<br/>URLをご確認ください。
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  // 追加：保存されたオプションを安全にオブジェクトとして取得
-  const optObj = typeof store.options === 'string' ? JSON.parse(store.options || '{}') : (store.options || {});
+  const tClass = THEMES[store.theme] || THEMES.luxury;
+
+  // 追加：保存されたオプションを安全にオブジェクトとして取得
+  const optObj = typeof store.options === 'string' ? JSON.parse(store.options || '{}') : (store.options || {});
   // ↓修正：show_scenes をデフォルトのオプション設定に追加
   const options = { has_palm_reading: false, has_face_reading: false, has_reviews: true, has_likes: true, has_comment_ticker: true, show_menu_tags: true, show_recommendations: true, show_scenes: true, ...optObj };
 
