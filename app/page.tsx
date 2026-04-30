@@ -962,25 +962,37 @@ function CustomerApp() {
   }, [resultWine]);
 
   useEffect(() => {
-    if (view === 'result' && resultWine && store) {
-      const pageTitle = `${resultWine.name} | ${store.name} のAIワイン診断`;
-      const pageDesc = `「${store.name}」で選ばれた最高の一杯。産地：${resultWine.origin}。品種：${resultWine.grape}。ソムリエによる解説：${resultWine.comment?.substring(0, 50)}...`;
-      
-      document.title = pageTitle;
-      
-      const metaTags = {
-        'description': pageDesc,
-        'og:title': pageTitle,
-        'og:description': pageDesc,
-        'og:image': resultWine.image_url,
-        'og:url': window.location.href
-      };
+    if (!store) return;
 
-      Object.entries(metaTags).forEach(([name, content]) => {
-        let el = document.querySelector(`meta[property="${name}"]`) || document.querySelector(`meta[name="${name}"]`);
-        if (el) el.setAttribute('content', content || '');
-      });
+    let pageTitle = "";
+    let pageDesc = "";
+
+    if (view === 'result' && resultWine) {
+      // 診断結果画面のとき
+      pageTitle = `${resultWine.name} | ${store.name} の${store.program_name || 'AIワイン診断'}`;
+      pageDesc = `「${store.name}」で選ばれた最高の一杯。産地：${resultWine.origin}。品種：${resultWine.grape}。ソムリエによる解説：${resultWine.comment?.substring(0, 50)}...`;
+    } else {
+      // トップ画面や検索画面のとき
+      pageTitle = `${store.name} | ${store.program_name || 'AIソムリエ診断'}`;
+      pageDesc = `${store.name}の${store.program_name || 'AIソムリエ診断'}。今日飲みたいワインがすぐに見つかる、あなただけの専属ソムリエ体験。`;
     }
+    
+    // タイトルの反映
+    document.title = pageTitle;
+    
+    // メタタグの反映（SEO/SNSシェア用）
+    const metaTags = {
+      'description': pageDesc,
+      'og:title': pageTitle,
+      'og:description': pageDesc,
+      'og:image': resultWine?.image_url || store.logo_url || '',
+      'og:url': window.location.href
+    };
+
+    Object.entries(metaTags).forEach(([name, content]) => {
+      let el = document.querySelector(`meta[property="${name}"]`) || document.querySelector(`meta[name="${name}"]`);
+      if (el) el.setAttribute('content', content || '');
+    });
   }, [view, resultWine, store]);
 
   const startDiagnosis = (dishWineId?: string) => {
