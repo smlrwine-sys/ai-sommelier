@@ -1039,14 +1039,22 @@ function CustomerApp() {
 
     if (isLiked) {
       // いいね解除：DBをマイナス1
-      await supabase.rpc('decrement_wine_likes', { wine_id: wineId });
+      const { error } = await supabase.rpc('decrement_wine_likes', { wine_id: wineId });
+      if (error) {
+        alert("通信エラー: いいねの解除に失敗しました (" + error.message + ")");
+        return;
+      }
       updatedLikedWines = likedWines.filter(id => id !== wineId);
       setWines(prev => prev.map(w => w.id === wineId ? { ...w, total_likes: Math.max(0, (w.total_likes || 0) - 1) } : w));
       // 現在表示中のワインも即座に更新
       if (resultWine?.id === wineId) setResultWine({...resultWine, total_likes: Math.max(0, (resultWine.total_likes || 0) - 1)});
     } else {
       // いいね追加：DBをプラス1
-      await supabase.rpc('increment_wine_likes', { wine_id: wineId });
+      const { error } = await supabase.rpc('increment_wine_likes', { wine_id: wineId });
+      if (error) {
+        alert("通信エラー: いいねの追加に失敗しました (" + error.message + ")");
+        return;
+      }
       updatedLikedWines = [...likedWines, wineId];
       setWines(prev => prev.map(w => w.id === wineId ? { ...w, total_likes: (w.total_likes || 0) + 1 } : w));
       // 現在表示中のワインも即座に更新
