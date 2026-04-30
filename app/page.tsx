@@ -1546,9 +1546,9 @@ function CustomerApp() {
       )}
 
 
-     {view === 'result' && resultWine && (
+    {view === 'result' && resultWine && (
         <div className="animate-in fade-in duration-1000 pb-40 h-screen overflow-y-auto hide-scrollbar bg-[#FAF9F6]">
-          {/* ヘッダー：歯車アイコンを削除 */}
+          {/* 1. ヘッダー：歯車アイコンを完全に削除し、w-10の空白で左右バランスを調整 */}
           <header className="sticky top-0 z-50 bg-[#FAF9F6]/80 backdrop-blur-md p-4 flex justify-between items-center border-b border-[#E5E0D8]">
             <div className="w-10">
               <button onClick={() => setView('search')} className="p-2 hover:opacity-50 transition-opacity"><ChevronLeft size={24} className="text-[#1A1A1A]"/></button>
@@ -1561,25 +1561,25 @@ function CustomerApp() {
               )}
               <h1 className="text-xl font-serif font-black tracking-tight text-[#1A1A1A]">{store.program_name || 'AIワイン診断'}</h1>
             </div>
-            <div className="w-10"></div> {/* 右側のバランス用スペース */}
+            <div className="w-10"></div> {/* 右側のバランス用スペース（設定アイコンを削除） */}
           </header>
 
           <div className="p-6 max-w-md mx-auto space-y-10 text-left">
             
-            {/* 1. ワイン画像セクション（光のエフェクトを一番上に配置） */}
+            {/* 2. ワイン画像セクション（光のエフェクト z-20 を画像 img の後に記述して最前面へ） */}
             <div className="reveal-1 relative aspect-square bg-white rounded-[2.5rem] flex items-center justify-center shadow-2xl overflow-hidden border border-[#E5E0D8]">
               <div className="absolute inset-0 opacity-20 animate-liquid" style={{ background: resultWine.wine_type === '赤' ? '#A82B3B' : (resultWine.wine_type === '白' || resultWine.wine_type === '泡') ? '#F3DA91' : resultWine.wine_type === 'ロゼ' ? '#E1306C' : resultWine.wine_type === 'オレンジ' ? '#F97316' : '#A82B3B' }} />
               
               <img src={resultWine.image_url || 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400'} className="h-full object-contain p-10 drop-shadow-2xl" />
 
-              {/* ボトルに走る斜めの光：z-indexを上げて画像の前に配置 */}
+              {/* ボトルに走る斜めの光：z-indexを20に上げ、画像の後に配置することで「画像の上」で光らせる */}
               <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-[200%] bg-gradient-to-b from-transparent via-white/40 to-transparent" 
+                <div className="absolute top-0 left-0 w-full h-[200%] bg-gradient-to-b from-transparent via-white/50 to-transparent" 
                      style={{ animation: 'shine 4s infinite ease-in-out' }} />
               </div>
             </div>
 
-            {/* 2. タイトル・基本情報 */}
+            {/* 3. タイトル・基本情報 */}
             <div className="reveal-2 space-y-4">
               <div className="inline-block px-3 py-1 bg-[#A82B3B]/10 rounded-full text-[#A82B3B] text-[10px] font-black tracking-widest uppercase mb-1">Recommended for you</div>
               <h2 className="text-4xl font-serif font-bold leading-tight text-[#1A1A1A]">{resultWine.name}</h2>
@@ -1594,10 +1594,11 @@ function CustomerApp() {
               </div>
             </div>
 
-            {/* 3. 価格・スコア（3列表示に修正） */}
+            {/* 4. 価格・スコア（3列表示：Match, Glass, Bottle） */}
             <div className="reveal-3 grid grid-cols-3 gap-2 sm:gap-4">
               <div className="bg-white p-4 rounded-2xl flex flex-col items-center justify-center border border-gray-100 shadow-sm">
                 <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Match</span>
+                {/* displayScore を使用してカウントアップを表示 */}
                 <span className="text-xl font-serif font-black text-[#A82B3B]">{displayScore}%</span>
               </div>
               <div className="bg-[#1A1A1A] p-4 rounded-2xl flex flex-col items-center justify-center shadow-lg">
@@ -1692,13 +1693,13 @@ function CustomerApp() {
             </div>
           </div>
 
-          {/* ナビゲーション：My Cellarを非アクティブにし、クリックで移動可能に修正 */}
+          {/* 5. ナビゲーション：My Cellarのアクティブ表示を解除し、クリックで移動可能に修正 */}
           <nav className="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-xl border-t border-[#E5E0D8] flex justify-around p-4 pb-8 z-50">
-            <button onClick={() => setView('top')} className="flex flex-col items-center gap-1 opacity-30"><Store size={22} /><span className="text-[10px] font-black uppercase">Home</span></button>
-            <button onClick={() => setView('search')} className="flex flex-col items-center gap-1 opacity-30"><Sparkles size={22} /><span className="text-[10px] font-black uppercase">Search</span></button>
+            <button onClick={() => setView('top')} className="flex flex-col items-center gap-1 opacity-30"><Store size={22} /><span className="text-[10px] font-black uppercase tracking-tighter">Home</span></button>
+            <button onClick={() => setView('search')} className="flex flex-col items-center gap-1 opacity-30"><Sparkles size={22} /><span className="text-[10px] font-black uppercase tracking-tighter">Search</span></button>
             <button onClick={() => setView('ranking')} className="flex flex-col items-center gap-1 opacity-30"><div className="font-serif font-black text-xl leading-none">R</div><span className="text-[10px] font-black uppercase tracking-tighter">Ranking</span></button>
-            {/* アクティブ表示を消し、setView('my_cellar') を追加 */}
-            <button onClick={() => setView('my_cellar')} className="flex flex-col items-center gap-1 opacity-30"><Bookmark size={22} /><span className="text-[10px] font-black uppercase tracking-tighter">My Cellar</span></button>
+            {/* setView('my_selection') への遷移を追加。opacity-30 にして通常ボタン化。 */}
+            <button onClick={() => setView('my_selection')} className="flex flex-col items-center gap-1 opacity-30"><Bookmark size={22} /><span className="text-[10px] font-black uppercase tracking-tighter">My Cellar</span></button>
           </nav>
         </div>
       )}
