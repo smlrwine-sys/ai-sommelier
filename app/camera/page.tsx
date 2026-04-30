@@ -344,45 +344,28 @@ export default function FaceReadingUI() {
             </div>
           )}
 
-          {/* 状態4: 診断中（ローディング演出） */}
+          {/* 状態4: 診断中（シンプルなThemify風ローディング演出） */}
           {isDiagnosing && (
-            <div className="absolute inset-0 w-full h-full z-50 bg-slate-950 flex flex-col items-center justify-center overflow-hidden">
-              {/* 背景に画像をぼかしてサイバーな色合いで配置 */}
-              {capturedImage && (
-                <img src={capturedImage} alt="bg" className="absolute inset-0 w-full h-full object-cover opacity-15 blur-xl mix-blend-luminosity" />
-              )}
-              
-              <CyberTerminal />
-              
+            <div className="absolute inset-0 w-full h-full z-50 flex flex-col items-center justify-center overflow-hidden bg-animated-gradient">
               <div className="relative z-10 w-[80%] max-w-[280px] flex flex-col items-center">
                 
-                {/* ラインから上へ現れるテキスト (Line Reveal 演出) */}
-                <div className="h-8 overflow-hidden relative w-full flex justify-center">
-                  <span className="absolute bottom-1 text-amber-500 font-mono tracking-[0.3em] text-[10px] font-bold animate-[revealUp_0.8s_ease-out_forwards] translate-y-full opacity-0">
-                    AI SOMMELIER SCANNING
+                {/* パーセンテージ表示 */}
+                <div className="flex items-baseline mb-5">
+                  <span className="text-7xl font-sans font-black text-black drop-shadow-sm tracking-tighter">
+                    {progress}
+                  </span>
+                  <span className="text-3xl font-sans font-black text-black ml-1 drop-shadow-sm">
+                    %
                   </span>
                 </div>
 
-                {/* 中央のプログレスライン */}
-                <div className="w-full h-[2px] bg-white/10 my-1 relative">
-                   {/* ラインが最初に中央から左右に伸びる演出 */}
-                   <div className="absolute inset-0 bg-white/30 origin-center animate-[expandX_0.8s_ease-out_forwards] scale-x-0" />
-                   
-                   {/* 進捗を示すプログレスバー (Base Progress 演出) */}
+                {/* プログレスバー（Framer MotionのBase Progress風） */}
+                <div className="w-full h-2 bg-black/10 rounded-full overflow-hidden backdrop-blur-sm">
                    <div 
-                     className="absolute top-0 left-0 h-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)]"
+                     className="h-full bg-black shadow-lg rounded-full"
                      style={{ width: `${progress}%`, transition: 'width 50ms linear' }}
                    />
                 </div>
-
-                {/* ラインから下へ現れるテキスト (パーセンテージ) */}
-                <div className="h-16 overflow-hidden relative w-full flex justify-center">
-                  <div className="absolute top-1 flex items-baseline animate-[revealDown_0.8s_ease-out_forwards] -translate-y-full opacity-0" style={{ animationDelay: '0.2s' }}>
-                    <span className="text-6xl font-serif font-black text-white drop-shadow-lg">{progress}</span>
-                    <span className="text-xl font-serif font-black text-amber-500 ml-1">%</span>
-                  </div>
-                </div>
-
               </div>
             </div>
           )}
@@ -418,18 +401,17 @@ export default function FaceReadingUI() {
         }
         .animate-float { animation: float-slow 4s infinite ease-in-out; }
 
-        /* === 診断中アニメーション (Line Reveal) === */
-        @keyframes revealUp {
-          0% { transform: translateY(100%); opacity: 0; }
-          100% { transform: translateY(0); opacity: 1; }
+        /* Themify風の滑らかなグラデーション背景アニメーション */
+        @keyframes gradientAnimation {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
         }
-        @keyframes revealDown {
-          0% { transform: translateY(-100%); opacity: 0; }
-          100% { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes expandX {
-          0% { transform: scaleX(0); opacity: 1; }
-          100% { transform: scaleX(1); opacity: 1; }
+        .bg-animated-gradient {
+          /* カラフルで滑らかなグラデーションパターン */
+          background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+          background-size: 400% 400%;
+          animation: gradientAnimation 10s ease infinite;
         }
       `}} />
     </div>
