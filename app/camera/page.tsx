@@ -1,7 +1,118 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
-import { Camera, X, RefreshCw, Check, ChevronLeft, Settings } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Camera, X, RefreshCw, Check, ChevronLeft } from 'lucide-react';
+
+// === 近未来的な文字表示コンポーネント (Glitchエフェクト) ===
+const GlitchText = ({ text }: { text: string }) => {
+  const [display, setDisplay] = useState('');
+  
+  useEffect(() => {
+    let iter = 0;
+    const timer = setInterval(() => {
+      setDisplay(text.split('').map((char, index) => {
+        if (index < iter) return char;
+        // ランダムな記号や英数字を生成して文字化けを演出
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*';
+        return chars[Math.floor(Math.random() * chars.length)];
+      }).join(''));
+      
+      iter += 0.5; // 文字が確定していくスピード
+      if (iter > text.length) clearInterval(timer);
+    }, 40);
+    
+    return () => clearInterval(timer);
+  }, [text]);
+
+  return <span>{display}</span>;
+};
+
+// === 左上に表示されるサイバー風ターミナル ===
+const CyberTerminal = () => {
+  const [hash1, setHash1] = useState('00000000');
+  const [hash2, setHash2] = useState('0.0000');
+  
+  // 常に高速で変動し続けるランダム値（近未来感の演出）
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHash1(Math.random().toString(16).substring(2, 10).toUpperCase());
+      setHash2((Math.random() * 100).toFixed(4));
+    }, 80);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 順番に表示される解析ログ
+  const [logs, setLogs] = useState<string[]>([]);
+  useEffect(() => {
+    const sequence = [
+      "INITIALIZING SCAN...",
+      "TARGET ACQUIRED",
+      "ANALYZING FACIAL LANDMARKS",
+      "EXTRACTING EMOTION VECTORS",
+      "CALCULATING TASTE PARAMS...",
+      "MATCHING WINE DATABASE..."
+    ];
+    let i = 0;
+    const timer = setInterval(() => {
+      if (i < sequence.length) {
+        setLogs(prev => [...prev, sequence[sequence.indexOf(prev[prev.length - 1]) + 1 || 0]]);
+        i++;
+      }
+    }, 800);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="absolute top-6 left-6 font-mono text-[10px] sm:text-xs leading-tight z-30 pointer-events-none text-left">
+      <div className="mb-4 text-amber-400/90 drop-shadow-[0_0_2px_rgba(245,158,11,0.8)] space-y-0.5">
+         <div>SYS_PROC: 0x{hash1}</div>
+         <div>VAR_FLUX: {hash2}</div>
+      </div>
+      <div className="space-y-1 text-white/90 drop-shadow-[0_0_2px_rgba(255,255,255,0.8)]">
+         {logs.map((log, idx) => (
+           <div key={idx} className="flex gap-2">
+             <span className="opacity-50 text-amber-500">{'>'}</span>
+             <GlitchText text={log} />
+           </div>
+         ))}
+      </div>
+    </div>
+  );
+};
+
+// === 顔の輪郭ガイド（SVG） ===
+const FaceGuide = () => (
+  <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center pb-20 z-20">
+    <svg viewBox="0 0 200 240" className="w-[70%] max-w-[280px] h-auto text-white/40 transform -scale-x-100" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        {/* 顔の輪郭（丸みを持たせて人間の顔の比率に） */}
+        <path d="M 100,20 C 145,20 165,60 165,120 C 165,170 135,220 100,230 C 65,220 35,170 35,120 C 35,60 55,20 100,20 Z" />
+        
+        {/* 目（黒目を消してアーチ型の線に） */}
+        <path d="M 65,115 Q 75,105 85,115" />
+        <path d="M 115,115 Q 125,105 135,115" />
+        
+        {/* 鼻 */}
+        <path d="M 100,115 L 100,160" />
+        <path d="M 94,160 L 106,160" />
+        
+        {/* 口 */}
+        <path d="M 75,190 Q 100,200 125,190" />
+        
+        {/* コーナーの飾り線（顔認証システム風） */}
+        <path d="M 10,10 L 40,10 M 10,10 L 10,40" stroke="white" strokeWidth="3" />
+        <path d="M 190,10 L 160,10 M 190,10 L 190,40" stroke="white" strokeWidth="3" />
+        <path d="M 10,230 L 40,230 M 10,230 L 10,200" stroke="white" strokeWidth="3" />
+        <path d="M 190,230 L 160,230 M 190,230 L 190,200" stroke="white" strokeWidth="3" />
+        
+        {/* センターのクロスライン（照準） */}
+        <line x1="100" y1="10" x2="100" y2="30" stroke="white" strokeWidth="1" opacity="0.5"/>
+        <line x1="100" y1="210" x2="100" y2="230" stroke="white" strokeWidth="1" opacity="0.5"/>
+        <line x1="10" y1="120" x2="30" y2="120" stroke="white" strokeWidth="1" opacity="0.5"/>
+        <line x1="170" y1="120" x2="190" y2="120" stroke="white" strokeWidth="1" opacity="0.5"/>
+    </svg>
+  </div>
+);
+
 
 export default function FaceReadingUI() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -140,33 +251,15 @@ export default function FaceReadingUI() {
               className="w-full h-full object-cover transform -scale-x-100 z-10"
             />
             
-            {/* 影オーバーレイ */}
-            <div className="absolute inset-0 pointer-events-none z-10 bg-black/50" />
+            {/* 影オーバーレイ（暗くしてガイドを目立たせる） */}
+            <div className="absolute inset-0 pointer-events-none z-10 bg-black/30" />
             
             {/* ② ガイド枠（顔認証風SVG） */}
+            <FaceGuide />
             <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center pb-20 z-20">
-                {/* SVGガイド：ビデオに合わせて左右反転 */}
-                <svg viewBox="0 0 200 250" className="w-48 h-64 text-white/60 transform -scale-x-100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    {/* 顔の輪郭 */}
-                    <path d="M 100,20 C 130,20 160,40 160,80 C 160,120 150,150 140,180 C 130,210 100,230 100,230 C 100,230 70,210 60,180 C 50,150 40,120 40,80 C 40,40 70,20 100,20 Z" />
-                    {/* 左目 */}
-                    <ellipse cx="75" cy="90" rx="15" ry="8" />
-                    <circle cx="75" cy="90" r="3" fill="currentColor"/>
-                    {/* 右目 */}
-                    <ellipse cx="125" cy="90" rx="15" ry="8" />
-                    <circle cx="125" cy="90" r="3" fill="currentColor"/>
-                    {/* 鼻 */}
-                    <path d="M 100,100 L 100,140" strokeWidth="2.5"/>
-                    <path d="M 95,140 L 105,140" strokeWidth="2"/>
-                    {/* 口 */}
-                    <path d="M 80,170 C 90,180 110,180 120,170 M 80,170 L 120,170 Z" />
-                    {/* コーナーの飾り線 */}
-                    <path d="M 20,20 L 40,20 M 20,20 L 20,40" stroke="white" />
-                    <path d="M 180,20 L 160,20 M 180,20 L 180,40" stroke="white" />
-                    <path d="M 20,230 L 40,230 M 20,230 L 20,210" stroke="white" />
-                    <path d="M 180,230 L 160,230 M 180,230 L 180,210" stroke="white" />
-                </svg>
-               <p className="mt-6 text-white/90 text-xs font-black tracking-[0.2em] bg-black/50 px-4 py-1.5 rounded-full backdrop-blur-sm uppercase">枠の中に顔を合わせてください</p>
+               <div className="w-[70%] max-w-[280px] h-auto aspect-[5/6] flex items-end justify-center">
+                 <p className="mt-6 text-white/90 text-[10px] sm:text-xs font-black tracking-[0.2em] bg-black/50 px-4 py-1.5 rounded-full backdrop-blur-sm uppercase translate-y-8">枠の中に顔を合わせてください</p>
+               </div>
             </div>
 
             {/* 撮影ボタン */}
@@ -187,29 +280,28 @@ export default function FaceReadingUI() {
             </div>
           </div>
 
-          {/* 状態3: 撮影完了（画像確認） */}
+          {/* 状態3: 撮影完了（画像確認 ＋ AI解析演出） */}
           {capturedImage && (
             <div className="absolute inset-0 w-full h-full z-20 bg-slate-900">
               <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
               
-              {/* ③ スキャンエフェクト ＋ プログラミング用語 */}
-              <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
+              {/* 暗転オーバーレイ */}
+              <div className="absolute inset-0 bg-black/40 z-10 pointer-events-none" />
+
+              {/* ② 撮影後にも顔ガイドを表示 */}
+              <FaceGuide />
+
+              {/* ③ スキャンエフェクト ＋ ランダムプログラミング用語 */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden z-30">
                 {/* オレンジの移動線 */}
-                <div className="w-full h-1 bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,1)] absolute top-0 animate-[scan_3s_ease-in-out_infinite_alternate]" />
+                <div className="w-full h-1 bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,1)] absolute top-0 animate-[scan_2.5s_ease-in-out_infinite_alternate]" />
                 
-                {/* 打ち込まれる用語（白テキスト） */}
-                <div className="absolute inset-0 p-8 font-mono text-[10px] text-white/90 space-y-1.5 pt-10 text-left">
-                    <p className="animate-typing-1 whitespace-nowrap overflow-hidden">NeuralNetwork::AnalyzeExpression()</p>
-                    <p className="animate-typing-2 whitespace-nowrap overflow-hidden delay-100">{'>> Extracting: EmotionValue...'}</p>
-                    <p className="animate-typing-3 whitespace-nowrap overflow-hidden delay-300">{'>> Extracting: TasteParams...'}</p>
-                    <p className="animate-typing-4 whitespace-nowrap overflow-hidden delay-500 text-amber-300">FeatureDetect: Positive(0.85)</p>
-                    <p className="animate-typing-5 whitespace-nowrap overflow-hidden delay-700">{'>> db.wines.filter(best_match)...'}</p>
-                    <p className="animate-typing-6 whitespace-nowrap overflow-hidden delay-1000 tracking-wider text-green-400 font-bold">Result: SUCCESS</p>
-                </div>
+                {/* 打ち込まれる用語コンポーネント */}
+                <CyberTerminal />
               </div>
 
               {/* ボタンエリア */}
-              <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-40 pb-8 px-6 flex justify-between gap-4 z-30">
+              <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-40 pb-8 px-6 flex justify-between gap-4 z-40">
                 <button 
                   onClick={retakePhoto}
                   className="flex-1 py-4 bg-slate-800/80 text-white font-bold rounded-2xl border border-white/10 backdrop-blur-sm flex items-center justify-center gap-2 active:scale-95 transition-colors hover:bg-slate-700"
@@ -240,17 +332,7 @@ export default function FaceReadingUI() {
           100% { top: 90%; opacity: 0; }
         }
 
-        /* ③ 文字打ち込みのアニメーション */
-        @keyframes typing { from { width: 0 } to { width: 100% } }
-        
-        /* それぞれのテキストの文字数に合わせてsteps()を調整 */
-        .animate-typing-1 { animation: typing 0.8s steps(28) forwards; }
-        .animate-typing-2 { animation: typing 0.6s steps(27) forwards; }
-        .animate-typing-3 { animation: typing 0.6s steps(25) forwards; }
-        .animate-typing-4 { animation: typing 0.8s steps(29) forwards; }
-        .animate-typing-5 { animation: typing 0.9s steps(33) forwards; }
-        .animate-typing-6 { animation: typing 0.5s steps(15) forwards; }
-
+        /* ふわふわ浮くアニメーション */
         @keyframes float-slow {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-10px); }
