@@ -617,6 +617,10 @@ function AdminStoreView({ setMode, storeId }: any) {
     } 
   };
 
+  const [displayScore, setDisplayScore] = useState(0);
+  // ↓追加：いいねしたワインIDのリスト
+  const [likedWines, setLikedWines] = useState<string[]>([]);
+
   return (
     <div className="min-h-screen bg-emerald-50 p-6 text-slate-800 pb-20 relative text-left">
       <button onClick={() => setMode('portal')} className="flex items-center gap-1 font-bold mb-4 text-emerald-700 hover:underline"><ChevronLeft/> SYSTEM PORTALに戻る</button>
@@ -918,8 +922,13 @@ function CustomerApp() {
         : allWines || [];
       setWines(displayWines);
 
+      // 保存済みワイン（マイセラー）の読み込み
       const saved = localStorage.getItem('sommelier_my_selection');
       if (saved) setMySelections(JSON.parse(saved));
+
+      // 追加：自分がどのワインに「いいね」したかの記録を読み込む
+      const liked = localStorage.getItem('sommelier_liked_wines');
+      if (liked) setLikedWines(JSON.parse(liked));
 
       const wineJan = params.get('jan');
       if (wineJan) {
@@ -1003,10 +1012,29 @@ function CustomerApp() {
     }, 3000);
   };
 
+  // --- いいねボタン（トグル機能付き） ---
   const handleLike = async (wineId: string) => {
-    await supabase.rpc('increment_wine_likes', { wine_id: wineId });
-    setWines(prev => prev.map(w => w.id === wineId ? { ...w, total_likes: (w.total_likes || 0) + 1 } : w));
-    alert("ありがとうございます！");
+    const isLiked = likedWines.includes(wineId);
+    let updatedLikedWines: string[];
+
+    if (isLiked) {
+      // いいね解除：DBをマイナス1
+      await supabase.rpc('decrement_wine_likes', { wine_id: wineId });
+      updatedLikedWines = likedWines.filter(id => id !== wineId);
+      setWines(prev => prev.map(w => w.id === wineId ? { ...w, total_likes: Math.max(0, (w.total_likes || 0) - 1) } : w));
+      // 現在表示中のワインも即座に更新
+      if (resultWine?.id === wineId) setResultWine({...resultWine, total_likes: Math.max(0, (resultWine.total_likes || 0) - 1)});
+    } else {
+      // いいね追加：DBをプラス1
+      await supabase.rpc('increment_wine_likes', { wine_id: wineId });
+      updatedLikedWines = [...likedWines, wineId];
+      setWines(prev => prev.map(w => w.id === wineId ? { ...w, total_likes: (w.total_likes || 0) + 1 } : w));
+      // 現在表示中のワインも即座に更新
+      if (resultWine?.id === wineId) setResultWine({...resultWine, total_likes: (resultWine.total_likes || 0) + 1});
+    }
+
+    setLikedWines(updatedLikedWines);
+    localStorage.setItem('sommelier_liked_wines', JSON.stringify(updatedLikedWines));
   };
 
   const handleShare = (platform: 'x' | 'line' | 'instagram') => {
@@ -1173,11 +1201,27 @@ function CustomerApp() {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
+/* 円形進捗の描画アニメーション */
+@keyframes progress-draw {
+  from { stroke-dashoffset: 283; }
+  to { stroke-dashoffset: var(--dash-offset); }
+}
+/* ハートボタンの弾けるアニメーション */
+@keyframes heart-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
 .reveal-1 { animation: reveal-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
 .reveal-2 { animation: reveal-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s forwards; opacity: 0; }
 .reveal-3 { animation: reveal-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.4s forwards; opacity: 0; }
 .reveal-4 { animation: reveal-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s forwards; opacity: 0; }
 .animate-float { animation: float-slow 4s infinite ease-in-out; }
+.animate-heart-pop { animation: heart-pop 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.49); }
+.circular-progress {
+  stroke-dasharray: 283;
+  transition: stroke-dashoffset 1.5s ease-out;
+}
       `}} />
 
       {view === 'top' && (
@@ -1548,7 +1592,7 @@ function CustomerApp() {
 
     {view === 'result' && resultWine && (
         <div className="animate-in fade-in duration-1000 pb-40 h-screen overflow-y-auto hide-scrollbar bg-[#FAF9F6]">
-          {/* 1. ヘッダー：歯車アイコンを完全に削除し、w-10の空白で左右バランスを調整 */}
+          {/* ヘッダー */}
           <header className="sticky top-0 z-50 bg-[#FAF9F6]/80 backdrop-blur-md p-4 flex justify-between items-center border-b border-[#E5E0D8]">
             <div className="w-10">
               <button onClick={() => setView('search')} className="p-2 hover:opacity-50 transition-opacity"><ChevronLeft size={24} className="text-[#1A1A1A]"/></button>
@@ -1561,25 +1605,23 @@ function CustomerApp() {
               )}
               <h1 className="text-xl font-serif font-black tracking-tight text-[#1A1A1A]">{store.program_name || 'AIワイン診断'}</h1>
             </div>
-            <div className="w-10"></div> {/* 右側のバランス用スペース（設定アイコンを削除） */}
+            <div className="w-10"></div>
           </header>
 
-          <div className="p-6 max-w-md mx-auto space-y-10 text-left">
+          <div className="p-6 max-w-md mx-auto space-y-12 text-left">
             
-            {/* 2. ワイン画像セクション（光のエフェクト z-20 を画像 img の後に記述して最前面へ） */}
-            <div className="reveal-1 relative aspect-square bg-white rounded-[2.5rem] flex items-center justify-center shadow-2xl overflow-hidden border border-[#E5E0D8]">
+            {/* 1. ワイン画像セクション */}
+            <div className="reveal-1 relative aspect-square bg-white rounded-[3rem] flex items-center justify-center shadow-2xl overflow-hidden border border-[#E5E0D8]">
               <div className="absolute inset-0 opacity-20 animate-liquid" style={{ background: resultWine.wine_type === '赤' ? '#A82B3B' : (resultWine.wine_type === '白' || resultWine.wine_type === '泡') ? '#F3DA91' : resultWine.wine_type === 'ロゼ' ? '#E1306C' : resultWine.wine_type === 'オレンジ' ? '#F97316' : '#A82B3B' }} />
-              
-              <img src={resultWine.image_url || 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400'} className="h-full object-contain p-10 drop-shadow-2xl" />
-
-              {/* ボトルに走る斜めの光：z-indexを20に上げ、画像の後に配置することで「画像の上」で光らせる */}
+              <img src={resultWine.image_url || 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400'} className="h-full object-contain p-10 drop-shadow-2xl relative z-10" />
+              {/* 最前面の光エフェクト */}
               <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-[200%] bg-gradient-to-b from-transparent via-white/50 to-transparent" 
                      style={{ animation: 'shine 4s infinite ease-in-out' }} />
               </div>
             </div>
 
-            {/* 3. タイトル・基本情報 */}
+            {/* 2. タイトル・基本情報 */}
             <div className="reveal-2 space-y-4">
               <div className="inline-block px-3 py-1 bg-[#A82B3B]/10 rounded-full text-[#A82B3B] text-[10px] font-black tracking-widest uppercase mb-1">Recommended for you</div>
               <h2 className="text-4xl font-serif font-bold leading-tight text-[#1A1A1A]">{resultWine.name}</h2>
@@ -1594,29 +1636,49 @@ function CustomerApp() {
               </div>
             </div>
 
-            {/* 4. 価格・スコア（3列表示：Match, Glass, Bottle） */}
-            <div className="reveal-3 grid grid-cols-3 gap-2 sm:gap-4">
-              <div className="bg-white p-4 rounded-2xl flex flex-col items-center justify-center border border-gray-100 shadow-sm">
-                <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Match</span>
-                {/* displayScore を使用してカウントアップを表示 */}
-                <span className="text-xl font-serif font-black text-[#A82B3B]">{displayScore}%</span>
+            {/* 3. マッチング・スコア（円形デザイン） */}
+            <div className="reveal-3 flex flex-col items-center gap-10">
+              <div className="relative w-48 h-48 flex items-center justify-center">
+                {/* 背景の薄い円 */}
+                <svg className="absolute w-full h-full -rotate-90">
+                  <circle cx="96" cy="96" r="90" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-gray-100" />
+                  {/* 赤いプログレス円 */}
+                  <circle 
+                    cx="96" cy="96" r="90" stroke="#A82B3B" strokeWidth="8" fill="transparent" 
+                    strokeDasharray="565"
+                    strokeDashoffset={565 - (565 * displayScore) / 100}
+                    strokeLinecap="round"
+                    className="transition-all duration-[1500ms] ease-out"
+                  />
+                </svg>
+                <div className="flex flex-col items-center">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-[-4px]">MATCH</span>
+                  <div className="flex items-baseline">
+                    <span className="text-5xl font-serif font-black text-[#A82B3B]">{displayScore}</span>
+                    <span className="text-xl font-serif font-black text-[#A82B3B]">%</span>
+                  </div>
+                </div>
               </div>
-              <div className="bg-[#1A1A1A] p-4 rounded-2xl flex flex-col items-center justify-center shadow-lg">
-                <span className="text-[8px] font-bold text-white/40 uppercase tracking-tighter mb-1">Glass</span>
-                <span className="text-lg font-serif font-black text-white">¥{resultWine.glass_price ? resultWine.glass_price.toLocaleString() : '-'}</span>
-              </div>
-              <div className="bg-[#1A1A1A] p-4 rounded-2xl flex flex-col items-center justify-center shadow-lg">
-                <span className="text-[8px] font-bold text-white/40 uppercase tracking-tighter mb-1">Bottle</span>
-                <span className="text-lg font-serif font-black text-white">¥{resultWine.bottle_price ? resultWine.bottle_price.toLocaleString() : '-'}</span>
+
+              {/* 価格カード（スコアの下に2列配置） */}
+              <div className="grid grid-cols-2 gap-4 w-full px-2">
+                <div className="bg-[#1A1A1A] p-5 rounded-3xl flex flex-col items-center shadow-xl border border-white/5">
+                  <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">グラス</span>
+                  <span className="text-xl font-serif font-black text-white">¥{resultWine.glass_price ? resultWine.glass_price.toLocaleString() : '-'}</span>
+                </div>
+                <div className="bg-[#1A1A1A] p-5 rounded-3xl flex flex-col items-center shadow-xl border border-white/5">
+                  <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">ボトル</span>
+                  <span className="text-xl font-serif font-black text-white">¥{resultWine.bottle_price ? resultWine.bottle_price.toLocaleString() : '-'}</span>
+                </div>
               </div>
             </div>
 
             {/* 味わいの特徴 */}
-            <section className="reveal-4 space-y-6">
+            <section className="reveal-4 space-y-6 pt-6">
               <div className="flex justify-between items-baseline border-b border-[#E5E0D8] pb-2">
                 <h3 className="text-xl font-serif font-bold text-[#1A1A1A]">味わいの特徴</h3>
               </div>
-              <div className="bg-white p-8 rounded-[2.5rem] border border-[#E5E0D8] shadow-sm">
+              <div className="bg-white p-8 rounded-[3rem] border border-[#E5E0D8] shadow-sm">
                 <RadarChart data={resultWine.taste} />
               </div>
             </section>
@@ -1626,9 +1688,7 @@ function CustomerApp() {
               <h3 className="text-xl font-serif font-bold text-[#1A1A1A] border-b border-gray-100 pb-2">香りと味わい</h3>
               <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-4">
                 {resultWine.aromas?.map((a: string, idx: number) => (
-                  <div key={a} 
-                       className="animate-float flex flex-col items-center gap-3 min-w-[110px]"
-                       style={{ animationDelay: `${idx * 0.5}s` }}>
+                  <div key={a} className="animate-float flex flex-col items-center gap-3 min-w-[110px]" style={{ animationDelay: `${idx * 0.5}s` }}>
                     <div className="w-24 h-24 rounded-2xl bg-white overflow-hidden shadow-xl border border-[#E5E0D8]">
                       <img src={AROMA_IMAGES[a] || DEFAULT_AROMA_IMAGE} alt={a} className="w-full h-full object-cover" />
                     </div>
@@ -1639,13 +1699,13 @@ function CustomerApp() {
             </section>
 
             {/* ソムリエコメント */}
-            <div className="reveal-4 bg-[#0A1F11] p-10 rounded-[2rem] relative overflow-hidden text-white shadow-2xl">
+            <div className="reveal-4 bg-[#0A1F11] p-10 rounded-[3rem] relative overflow-hidden text-white shadow-2xl">
                <Quote className="absolute top-6 right-6 w-20 h-20 opacity-10 rotate-180" />
                <p className="text-[10px] font-black text-amber-500 mb-6 tracking-[0.2em] uppercase">ソムリエのコメント</p>
                <p className="relative z-10 leading-loose font-serif text-xl italic opacity-95">「{resultWine.comment}」</p>
             </div>
 
-            {/* レビューセクション */}
+            {/* レビュー */}
             <section className="reveal-4 space-y-8 text-left">
               <h3 className="text-xl font-serif font-bold text-[#1A1A1A] border-b border-[#E5E0D8] pb-2">レビュー</h3>
               <div className="space-y-8 max-h-[320px] overflow-y-auto pr-2 hide-scrollbar">
@@ -1661,31 +1721,33 @@ function CustomerApp() {
               </div>
             </section>
 
-            {/* アクションボタン */}
+            {/* アクションボタン（いいねボタン改善） */}
             <div className="reveal-4 flex flex-col gap-4">
               <div className="flex gap-4 items-center">
-                <button onClick={() => handleLike(resultWine.id)} className="bg-white p-4 rounded-2xl flex flex-col items-center justify-center min-w-[80px] border border-gray-100 shadow-sm active:scale-95 transition-transform">
-                  <Heart size={24} className={resultWine.total_likes > 0 ? "text-[#A82B3B] fill-[#A82B3B]" : "text-gray-400"} />
-                  <span className="text-xs font-black mt-1 text-[#1A1A1A]">{resultWine.total_likes || 0}</span>
+                <button 
+                  onClick={() => handleLike(resultWine.id)} 
+                  className={`bg-white p-4 rounded-3xl flex flex-col items-center justify-center min-w-[85px] h-[85px] border-2 transition-all duration-300 ${likedWines.includes(resultWine.id) ? "border-[#A82B3B] bg-rose-50 animate-heart-pop" : "border-gray-100"}`}
+                >
+                  <Heart size={28} className={likedWines.includes(resultWine.id) ? "text-[#A82B3B] fill-[#A82B3B]" : "text-gray-300"} />
+                  <span className={`text-xs font-black mt-1 ${likedWines.includes(resultWine.id) ? "text-[#A82B3B]" : "text-gray-400"}`}>{resultWine.total_likes || 0}</span>
                 </button>
-                <button onClick={handleSaveToCellar} className="bg-white p-4 rounded-2xl flex flex-col items-center justify-center min-w-[80px] border border-gray-100 shadow-sm active:scale-95 transition-transform">
-                  <Bookmark size={24} className="text-[#A82B3B]" />
+                <button onClick={handleSaveToCellar} className="bg-white p-4 rounded-3xl flex flex-col items-center justify-center min-w-[85px] h-[85px] border-2 border-gray-100 active:scale-95 transition-transform">
+                  <Bookmark size={28} className="text-[#A82B3B]" />
                   <span className="text-xs font-black mt-1 text-[#1A1A1A]">保存</span>
                 </button>
-                <button onClick={() => setShowCommentModal(true)} className="flex-1 bg-[#0A1F11] h-[72px] text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform">
-                  <MessageCircle size={20}/> 感想を送る
+                <button onClick={() => setShowCommentModal(true)} className="flex-1 bg-[#0A1F11] h-[85px] text-white rounded-3xl font-black text-lg flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all">
+                  <MessageCircle size={22}/> 感想を送る
                 </button>
               </div>
-              
-              <button onClick={() => { if(store.google_map_url) window.open(store.google_map_url, '_blank'); else alert("URLが設定されていません。"); }} className="w-full py-5 border-2 border-[#0A1F11] rounded-2xl text-sm font-black flex items-center justify-center gap-2 text-[#0A1F11] active:scale-95 transition-transform">🏪 お店の口コミを投稿</button>
+              <button onClick={() => { if(store.google_map_url) window.open(store.google_map_url, '_blank'); else alert("URLが設定されていません。"); }} className="w-full py-6 border-2 border-[#0A1F11] rounded-[2rem] text-sm font-black flex items-center justify-center gap-2 text-[#0A1F11] active:scale-95 transition-all">🏪 お店の口コミを投稿</button>
             </div>
 
             {/* SNSシェア */}
             <div className="reveal-4 pt-10 space-y-4">
               <p className="text-[10px] font-black text-gray-400 tracking-[0.3em] uppercase text-center">診断結果をシェアする</p>
-              <div className="flex justify-center gap-6">
+              <div className="flex justify-center gap-6 pb-20">
                 <button onClick={() => handleShare('line')} className="w-14 h-14 bg-white rounded-full border border-gray-100 shadow-sm flex items-center justify-center text-[#06C755]"><MessageCircle size={24} /></button>
-                <button onClick={() => handleShare('instagram')} className="w-14 h-14 rounded-2xl flex items-center justify-center transition-transform hover:scale-105" style={{ background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%,#d6249f 60%,#285AEB 90%)' }}>
+                <button onClick={() => handleShare('instagram')} className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%,#d6249f 60%,#285AEB 90%)' }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
                 </button>
                 <button onClick={() => handleShare('x')} className="w-14 h-14 bg-white rounded-full border border-gray-100 shadow-sm flex items-center justify-center text-black font-bold text-xl">X</button>
@@ -1693,12 +1755,11 @@ function CustomerApp() {
             </div>
           </div>
 
-          {/* 5. ナビゲーション：My Cellarのアクティブ表示を解除し、クリックで移動可能に修正 */}
+          {/* ナビゲーション */}
           <nav className="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-xl border-t border-[#E5E0D8] flex justify-around p-4 pb-8 z-50">
-            <button onClick={() => setView('top')} className="flex flex-col items-center gap-1 opacity-30"><Store size={22} /><span className="text-[10px] font-black uppercase tracking-tighter">Home</span></button>
-            <button onClick={() => setView('search')} className="flex flex-col items-center gap-1 opacity-30"><Sparkles size={22} /><span className="text-[10px] font-black uppercase tracking-tighter">Search</span></button>
+            <button onClick={() => setView('top')} className="flex flex-col items-center gap-1 opacity-30"><Store size={22} /><span className="text-[10px] font-black uppercase">Home</span></button>
+            <button onClick={() => setView('search')} className="flex flex-col items-center gap-1 opacity-30"><Sparkles size={22} /><span className="text-[10px] font-black uppercase">Search</span></button>
             <button onClick={() => setView('ranking')} className="flex flex-col items-center gap-1 opacity-30"><div className="font-serif font-black text-xl leading-none">R</div><span className="text-[10px] font-black uppercase tracking-tighter">Ranking</span></button>
-            {/* setView('my_selection') への遷移を追加。opacity-30 にして通常ボタン化。 */}
             <button onClick={() => setView('my_selection')} className="flex flex-col items-center gap-1 opacity-30"><Bookmark size={22} /><span className="text-[10px] font-black uppercase tracking-tighter">My Cellar</span></button>
           </nav>
         </div>
