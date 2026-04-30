@@ -873,12 +873,14 @@ function CustomerApp() {
   const [displayScore, setDisplayScore] = useState(0);
   const [likedWines, setLikedWines] = useState<string[]>([]);
 
-  // ↓追加：診断結果になった時にスコアを0から98までカウントアップさせる処理
+  // ↓追加：診断結果になった時にスコアを0からターゲット値までカウントアップさせる処理
   useEffect(() => {
-    if (view === 'result') {
+    if (view === 'result' && resultWine) {
       setDisplayScore(0);
       let start = 0;
-      const end = 98;
+      // 診断ロジックで計算されたスコア、なければ95〜99のランダム値をターゲットにする
+      const targetScore = resultWine.match_score || (Math.floor(Math.random() * 5) + 95);
+      const end = targetScore;
       const duration = 1500; // 1.5秒かけてカウント
       const timer = setInterval(() => {
         start += 2;
@@ -891,7 +893,7 @@ function CustomerApp() {
       }, duration / (end / 2));
       return () => clearInterval(timer);
     }
-  }, [view]);
+  }, [view, resultWine]);
 
   useEffect(() => {
     async function fetchData() {
@@ -988,22 +990,39 @@ function CustomerApp() {
       if (dishWineId) {
         const matched = wines.find(w => w.id === dishWineId);
         if (matched) {
-          setResultWine(matched);
+          // 料理からの直接診断の場合、相性スコアを96〜99に設定
+          const randomScore = Math.floor(Math.random() * 4) + 96;
+          setResultWine({ ...matched, match_score: randomScore });
           setView('result');
           setIsAnalyzing(false);
           return;
         }
       }
       
+      let maxScore = 0;
       const bestMatch = wines.reduce((prev, curr) => {
         let pS = 100 - Math.abs((prev.color_value || 50) - searchParams.colorValue);
         let cS = 100 - Math.abs((curr.color_value || 50) - searchParams.colorValue);
-        if (searchParams.scene && prev.tags?.includes(searchParams.scene)) pS += 40;
-        if (searchParams.scene && curr.tags?.includes(searchParams.scene)) cS += 40;
-        return cS > pS ? curr : prev;
+        if (searchParams.scene && prev.tags?.includes(searchParams.scene)) pS += 20;
+        if (searchParams.scene && curr.tags?.includes(searchParams.scene)) cS += 20;
+        if (searchParams.tag && prev.tags?.includes(searchParams.tag)) pS += 15;
+        if (searchParams.tag && curr.tags?.includes(searchParams.tag)) cS += 15;
+        
+        pS = Math.min(99, pS);
+        cS = Math.min(99, cS);
+
+        if (cS > pS) {
+          maxScore = cS;
+          return curr;
+        } else {
+          maxScore = Math.max(maxScore, pS);
+          return prev;
+        }
       }, wines[0]);
 
-      setResultWine(bestMatch);
+      // 計算されたスコアを付与（最低でも85点以上になるように調整）
+      const finalScore = maxScore > 85 ? maxScore : (Math.floor(Math.random() * 10) + 85);
+      setResultWine({ ...bestMatch, match_score: finalScore });
       setView('result');
       
       const newUrl = `${window.location.origin}${window.location.pathname}?store_id=${store.id}&jan=${bestMatch.jan_code}`;
@@ -1665,11 +1684,15 @@ function CustomerApp() {
               <div className="grid grid-cols-2 gap-4 w-full px-2">
                 <div className="bg-[#1A1A1A] p-5 rounded-3xl flex flex-col items-center shadow-xl border border-white/5">
                   <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">グラス</span>
-                  <span className="text-xl font-serif font-black text-white">¥{resultWine.glass_price ? resultWine.glass_price.toLocaleString() : '-'}</span>
+                  <span className="text-xl font-serif font-black text-white">
+                    {resultWine.glass_price != null && resultWine.glass_price !== '' ? `¥${Number(resultWine.glass_price).toLocaleString()}` : '-'}
+                  </span>
                 </div>
                 <div className="bg-[#1A1A1A] p-5 rounded-3xl flex flex-col items-center shadow-xl border border-white/5">
                   <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">ボトル</span>
-                  <span className="text-xl font-serif font-black text-white">¥{resultWine.bottle_price ? resultWine.bottle_price.toLocaleString() : '-'}</span>
+                  <span className="text-xl font-serif font-black text-white">
+                    {resultWine.bottle_price != null && resultWine.bottle_price !== '' ? `¥${Number(resultWine.bottle_price).toLocaleString()}` : '-'}
+                  </span>
                 </div>
               </div>
             </div>
