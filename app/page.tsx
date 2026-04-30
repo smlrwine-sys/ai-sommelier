@@ -871,6 +871,7 @@ function CustomerApp() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   // ↓追加：カウントアップ表示用の状態
   const [displayScore, setDisplayScore] = useState(0);
+  const [likedWines, setLikedWines] = useState<string[]>([]);
 
   // ↓追加：診断結果になった時にスコアを0から98までカウントアップさせる処理
   useEffect(() => {
