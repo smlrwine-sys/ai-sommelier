@@ -910,7 +910,7 @@ function CustomerApp() {
       const { data: ds } = await supabase.from('dishes').select('*').eq('store_id', currentStore.id);
       setDishes(ds || []);
 
-      // 追加：データベースから本物のタグを取得
+      // データベースから本物のタグを取得
       const { data: tags } = await supabase.from('retail_menu_tags').select('*').eq('store_id', currentStore.id).order('created_at', { ascending: true });
       setRetailTags(tags || []);
 
@@ -929,16 +929,24 @@ function CustomerApp() {
       const saved = localStorage.getItem('sommelier_my_selection');
       if (saved) setMySelections(JSON.parse(saved));
 
-      // 追加：自分がどのワインに「いいね」したかの記録を読み込む
+      // 自分がどのワインに「いいね」したかの記録を読み込む
       const liked = localStorage.getItem('sommelier_liked_wines');
       if (liked) setLikedWines(JSON.parse(liked));
 
       const wineJan = params.get('jan');
+      const urlScore = params.get('score'); // ←追加：URLからスコアを取得
+
       if (wineJan) {
         const matched = allWines?.find(w => String(w.jan_code).trim() === wineJan);
         if (matched) {
           const inv = inventory?.find(i => String(i.jan_code).trim() === wineJan);
           const finalWine = inv ? { ...matched, bottle_price: inv.bottle_price, glass_price: inv.glass_price } : matched;
+          
+          // ←追加：URLにスコアがあれば、それを最終スコアとして上書きする
+          if (urlScore) {
+            finalWine.match_score = parseInt(urlScore, 10);
+          }
+          
           setResultWine(finalWine);
           setView('result');
         }
@@ -994,6 +1002,11 @@ function CustomerApp() {
           const randomScore = Math.floor(Math.random() * 4) + 96;
           setResultWine({ ...matched, match_score: randomScore });
           setView('result');
+          
+          // ←追加：料理から選んだ場合もURLにスコアを付与
+          const newUrl = `${window.location.origin}${window.location.pathname}?store_id=${store.id}&jan=${matched.jan_code}&score=${randomScore}`;
+          window.history.pushState({ path: newUrl }, '', newUrl);
+          
           setIsAnalyzing(false);
           return;
         }
@@ -1025,7 +1038,8 @@ function CustomerApp() {
       setResultWine({ ...bestMatch, match_score: finalScore });
       setView('result');
       
-      const newUrl = `${window.location.origin}${window.location.pathname}?store_id=${store.id}&jan=${bestMatch.jan_code}`;
+      // ←追加：診断完了のURLに &score=${finalScore} を付与する
+      const newUrl = `${window.location.origin}${window.location.pathname}?store_id=${store.id}&jan=${bestMatch.jan_code}&score=${finalScore}`;
       window.history.pushState({ path: newUrl }, '', newUrl);
 
       setIsAnalyzing(false);
@@ -2000,7 +2014,14 @@ function CustomerApp() {
               <div className="space-y-6 text-left">
                 {mySelections.map((item: any, idx: number) => (
                   <div key={idx} className="bg-white p-6 rounded-[2.5rem] border border-[#E5E0D8] shadow-xl flex flex-col gap-4 active:scale-[0.98] transition-transform cursor-pointer"
-                       onClick={() => { setResultWine(item.wine); setView('result'); }}>
+                       onClick={() => { 
+                         setResultWine(item.wine); 
+                         setView('result'); 
+                         // ←追加：My Cellarを開く時に、保存当時のスコアをURLに復元する
+                         const savedScore = item.wine?.match_score || 99;
+                         const newUrl = `${window.location.origin}${window.location.pathname}?store_id=${store.id}&jan=${item.wine?.jan_code}&score=${savedScore}`;
+                         window.history.pushState({ path: newUrl }, '', newUrl);
+                       }}>
                     <div className="flex gap-6 items-center">
                       <div className="w-16 h-24 bg-gray-50 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0">
                         <img src={item.wine?.image_url || 'https://via.placeholder.com/100'} className="w-full h-full object-contain p-2" />
