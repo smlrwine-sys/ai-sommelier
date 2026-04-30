@@ -122,6 +122,10 @@ export default function FaceReadingUI() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
+  
+  // 診断中ステートとプログレス(%)のステート
+  const [isDiagnosing, setIsDiagnosing] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   // 1. カメラを起動する
   const startCamera = async () => {
@@ -186,10 +190,36 @@ export default function FaceReadingUI() {
     startCamera();
   };
 
-  // 5. 診断へ進む（今回はモック処理）
+  // 5. 診断へ進む（5秒間のローディング開始）
   const proceedToDiagnosis = () => {
-    alert("この画像をサーバーに送信してAI診断を開始します！\n\n（※本番ではここにAPI通信処理が入ります）");
+    setIsDiagnosing(true);
   };
+
+  // 診断中のタイマー処理（5秒かけて100%にする）
+  useEffect(() => {
+    if (isDiagnosing) {
+      setProgress(0);
+      const duration = 5000; // 5秒
+      const interval = 50;   // 50msごとに更新
+      const steps = duration / interval;
+      let currentStep = 0;
+      
+      const timer = setInterval(() => {
+        currentStep++;
+        setProgress(Math.min(Math.floor((currentStep / steps) * 100), 100));
+        
+        if (currentStep >= steps) {
+          clearInterval(timer);
+          setTimeout(() => {
+            setIsDiagnosing(false);
+            alert("診断完了！結果画面へ遷移します。\n（※本番ではここにAPI通信と結果画面への遷移が入ります）");
+          }, 800); // 100%になってから少し待ってアラート
+        }
+      }, interval);
+      
+      return () => clearInterval(timer);
+    }
+  }, [isDiagnosing]);
 
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
@@ -280,23 +310,19 @@ export default function FaceReadingUI() {
             </div>
           </div>
 
-          {/* 状態3: 撮影完了（画像確認 ＋ AI解析演出） */}
-          {capturedImage && (
+          {/* 状態3: 撮影完了（画像確認） */}
+          {capturedImage && !isDiagnosing && (
             <div className="absolute inset-0 w-full h-full z-20 bg-slate-900">
               <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
               
               {/* 暗転オーバーレイ */}
               <div className="absolute inset-0 bg-black/40 z-10 pointer-events-none" />
 
-              {/* ② 撮影後にも顔ガイドを表示 */}
               <FaceGuide />
 
               {/* ③ スキャンエフェクト ＋ ランダムプログラミング用語 */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden z-30">
-                {/* オレンジの移動線 */}
                 <div className="w-full h-1 bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,1)] absolute top-0 animate-[scan_2.5s_ease-in-out_infinite_alternate]" />
-                
-                {/* 打ち込まれる用語コンポーネント */}
                 <CyberTerminal />
               </div>
 
@@ -318,6 +344,49 @@ export default function FaceReadingUI() {
             </div>
           )}
 
+          {/* 状態4: 診断中（ローディング演出） */}
+          {isDiagnosing && (
+            <div className="absolute inset-0 w-full h-full z-50 bg-slate-950 flex flex-col items-center justify-center overflow-hidden">
+              {/* 背景に画像をぼかしてサイバーな色合いで配置 */}
+              {capturedImage && (
+                <img src={capturedImage} alt="bg" className="absolute inset-0 w-full h-full object-cover opacity-15 blur-xl mix-blend-luminosity" />
+              )}
+              
+              <CyberTerminal />
+              
+              <div className="relative z-10 w-[80%] max-w-[280px] flex flex-col items-center">
+                
+                {/* ラインから上へ現れるテキスト (Line Reveal 演出) */}
+                <div className="h-8 overflow-hidden relative w-full flex justify-center">
+                  <span className="absolute bottom-1 text-amber-500 font-mono tracking-[0.3em] text-[10px] font-bold animate-[revealUp_0.8s_ease-out_forwards] translate-y-full opacity-0">
+                    AI SOMMELIER SCANNING
+                  </span>
+                </div>
+
+                {/* 中央のプログレスライン */}
+                <div className="w-full h-[2px] bg-white/10 my-1 relative">
+                   {/* ラインが最初に中央から左右に伸びる演出 */}
+                   <div className="absolute inset-0 bg-white/30 origin-center animate-[expandX_0.8s_ease-out_forwards] scale-x-0" />
+                   
+                   {/* 進捗を示すプログレスバー (Base Progress 演出) */}
+                   <div 
+                     className="absolute top-0 left-0 h-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)]"
+                     style={{ width: `${progress}%`, transition: 'width 50ms linear' }}
+                   />
+                </div>
+
+                {/* ラインから下へ現れるテキスト (パーセンテージ) */}
+                <div className="h-16 overflow-hidden relative w-full flex justify-center">
+                  <div className="absolute top-1 flex items-baseline animate-[revealDown_0.8s_ease-out_forwards] -translate-y-full opacity-0" style={{ animationDelay: '0.2s' }}>
+                    <span className="text-6xl font-serif font-black text-white drop-shadow-lg">{progress}</span>
+                    <span className="text-xl font-serif font-black text-amber-500 ml-1">%</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+
           {/* 見えないキャンバス（画像生成用） */}
           <canvas ref={canvasRef} className="hidden" />
         </div>
@@ -332,12 +401,36 @@ export default function FaceReadingUI() {
           100% { top: 90%; opacity: 0; }
         }
 
+        /* 文字打ち込みのアニメーション */
+        @keyframes typing { from { width: 0 } to { width: 100% } }
+        
+        .animate-typing-1 { animation: typing 0.8s steps(28) forwards; }
+        .animate-typing-2 { animation: typing 0.6s steps(27) forwards; }
+        .animate-typing-3 { animation: typing 0.6s steps(25) forwards; }
+        .animate-typing-4 { animation: typing 0.8s steps(29) forwards; }
+        .animate-typing-5 { animation: typing 0.9s steps(33) forwards; }
+        .animate-typing-6 { animation: typing 0.5s steps(15) forwards; }
+
         /* ふわふわ浮くアニメーション */
         @keyframes float-slow {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-10px); }
         }
         .animate-float { animation: float-slow 4s infinite ease-in-out; }
+
+        /* === 診断中アニメーション (Line Reveal) === */
+        @keyframes revealUp {
+          0% { transform: translateY(100%); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes revealDown {
+          0% { transform: translateY(-100%); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes expandX {
+          0% { transform: scaleX(0); opacity: 1; }
+          100% { transform: scaleX(1); opacity: 1; }
+        }
       `}} />
     </div>
   );
