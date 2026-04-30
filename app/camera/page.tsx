@@ -1,7 +1,81 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Camera, X, RefreshCw, Check, ChevronLeft, Quote, MessageCircle } from 'lucide-react';
+import { Camera, X, RefreshCw, Check, ChevronLeft, Quote, MessageCircle, Info } from 'lucide-react';
+
+// === 近未来的な文字表示コンポーネント (Glitchエフェクト) ===
+const GlitchText = ({ text }: { text: string }) => {
+  const [display, setDisplay] = useState('');
+  
+  useEffect(() => {
+    let iter = 0;
+    const timer = setInterval(() => {
+      setDisplay(text.split('').map((char, index) => {
+        if (index < iter) return char;
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*';
+        return chars[Math.floor(Math.random() * chars.length)];
+      }).join(''));
+      
+      iter += 0.5;
+      if (iter > text.length) clearInterval(timer);
+    }, 40);
+    
+    return () => clearInterval(timer);
+  }, [text]);
+
+  return <span>{display}</span>;
+};
+
+// === 左上に表示されるサイバー風ターミナル ===
+const CyberTerminal = () => {
+  const [hash1, setHash1] = useState('00000000');
+  const [hash2, setHash2] = useState('0.0000');
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHash1(Math.random().toString(16).substring(2, 10).toUpperCase());
+      setHash2((Math.random() * 100).toFixed(4));
+    }, 80);
+    return () => clearInterval(timer);
+  }, []);
+
+  const [logs, setLogs] = useState<string[]>([]);
+  useEffect(() => {
+    const sequence = [
+      "INITIALIZING SCAN...",
+      "TARGET ACQUIRED",
+      "ANALYZING FACIAL LANDMARKS",
+      "EXTRACTING EMOTION VECTORS",
+      "CALCULATING TASTE PARAMS...",
+      "MATCHING WINE DATABASE..."
+    ];
+    let i = 0;
+    const timer = setInterval(() => {
+      if (i < sequence.length) {
+        setLogs(prev => [...prev, sequence[sequence.indexOf(prev[prev.length - 1]) + 1 || 0]]);
+        i++;
+      }
+    }, 800);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="absolute top-6 left-6 font-mono text-[10px] sm:text-xs leading-tight z-30 pointer-events-none text-left">
+      <div className="mb-4 text-amber-400/90 drop-shadow-[0_0_2px_rgba(245,158,11,0.8)] space-y-0.5">
+         <div>SYS_PROC: 0x{hash1}</div>
+         <div>VAR_FLUX: {hash2}</div>
+      </div>
+      <div className="space-y-1 text-white/90 drop-shadow-[0_0_2px_rgba(255,255,255,0.8)]">
+         {logs.map((log, idx) => (
+           <div key={idx} className="flex gap-2">
+             <span className="opacity-50 text-amber-500">{'>'}</span>
+             <GlitchText text={log} />
+           </div>
+         ))}
+      </div>
+    </div>
+  );
+};
 
 // === 顔の輪郭ガイド（SVG） ===
 const FaceGuide = () => (
@@ -165,7 +239,18 @@ export default function FaceReadingUI() {
               <div className="absolute inset-0 w-full h-full z-20 bg-slate-900">
                 <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/40 z-10 pointer-events-none" />
+                
+                {/* ① 撮影後にも顔ガイドを表示 */}
                 <FaceGuide />
+                
+                {/* ① 復活：スキャンエフェクト ＋ プログラミング用語 */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden z-30">
+                  {/* オレンジの移動線 */}
+                  <div className="w-full h-1 bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,1)] absolute top-0 animate-[scan_2.5s_ease-in-out_infinite_alternate]" />
+                  {/* 打ち込まれる用語コンポーネント */}
+                  <CyberTerminal />
+                </div>
+
                 <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-40 pb-8 px-6 flex justify-between gap-4 z-40">
                   <button onClick={retakePhoto} className="flex-1 py-4 bg-slate-800/80 text-white font-bold rounded-2xl border border-white/10 backdrop-blur-sm flex items-center justify-center gap-2 active:scale-95"><RefreshCw size={19} /> 撮り直す</button>
                   <button onClick={proceedToDiagnosis} className="flex-1 py-4 bg-amber-600/90 text-white font-black rounded-2xl shadow-lg backdrop-blur-sm flex items-center justify-center gap-2 active:scale-95"><Check size={20} /> 診断する</button>
@@ -199,21 +284,31 @@ export default function FaceReadingUI() {
             {/* ① 撮影した顔がワイングラスにはめ込まれる演出 */}
             <div className="flex flex-col items-center pt-8">
               <div className="relative w-48 h-[250px] animate-float">
-                 {/* ワイングラスのボウル部分（丸みを持たせた切り抜き） */}
-                 <div className="absolute inset-x-0 top-0 h-[180px] overflow-hidden shadow-2xl z-10 border border-white/20" 
-                      style={{ borderRadius: '40% 40% 45% 45% / 10% 10% 45% 45%', backgroundColor: '#000' }}>
-                   {/* 撮影画像 */}
-                   <img src={capturedImage || ''} className="w-full h-full object-cover opacity-70 mix-blend-screen transform -scale-x-100" />
+                 {/* ② ワイングラスのボウル部分（白/透明ベースに変更） */}
+                 <div className="absolute inset-x-0 top-0 h-[180px] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.15)] z-10 border border-white/60" 
+                      style={{ borderRadius: '40% 40% 45% 45% / 10% 10% 45% 45%', backgroundColor: 'rgba(255, 255, 255, 0.2)', backdropFilter: 'blur(8px)' }}>
+                   {/* 撮影画像 (ワインの色味と合わせるためluminosityでブレンド) */}
+                   <img src={capturedImage || ''} className="w-full h-full object-cover opacity-60 mix-blend-luminosity transform -scale-x-100" />
                    {/* ワインの液体っぽいグラデーションオーバーレイ */}
-                   <div className="absolute inset-0 bg-gradient-to-t from-[#A82B3B]/90 via-[#A82B3B]/40 to-transparent mix-blend-multiply" />
+                   <div className="absolute inset-0 bg-gradient-to-t from-[#A82B3B]/90 via-[#A82B3B]/50 to-transparent mix-blend-multiply" />
                    {/* グラスのハイライト（光の反射） */}
-                   <div className="absolute top-4 left-4 w-6 h-32 bg-white/30 blur-md rounded-full transform rotate-12" />
+                   <div className="absolute top-4 left-4 w-6 h-32 bg-white/50 blur-md rounded-full transform rotate-12" />
                  </div>
                  {/* グラスの脚（ステム）と台座（ベース） */}
                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center z-0">
-                    <div className="w-2.5 h-[80px] bg-gradient-to-r from-gray-300 via-white to-gray-400 opacity-60 shadow-sm" />
-                    <div className="w-28 h-3 bg-gradient-to-t from-gray-400 to-white/80 rounded-[50%] shadow-lg mt-[-2px]" />
+                    <div className="w-2.5 h-[80px] bg-gradient-to-r from-gray-200 via-white to-gray-300 opacity-80 shadow-sm" />
+                    <div className="w-28 h-3 bg-gradient-to-t from-gray-300 to-white/90 rounded-[50%] shadow-md mt-[-2px]" />
                  </div>
+              </div>
+              
+              {/* ③ 注意書きの追加 */}
+              <div className="mt-8 px-5 py-4 bg-[#A82B3B]/5 rounded-2xl text-center border border-[#A82B3B]/10 w-full">
+                <p className="text-[10px] sm:text-xs font-bold text-[#A82B3B] leading-relaxed flex items-start gap-2 text-left">
+                  <Info size={16} className="shrink-0 mt-0.5" />
+                  <span>
+                    プライバシー保護のため、撮影した画像は24時間で自動消去されます。結果はスクリーンショットやシェア機能で保存してください。
+                  </span>
+                </p>
               </div>
             </div>
 
@@ -252,7 +347,8 @@ export default function FaceReadingUI() {
             {/* ⑤ 近似値のワインTOP3 */}
             <div className="space-y-4">
               <div className="flex items-end justify-between border-b border-[#E5E0D8] pb-2">
-                <h3 className="font-serif font-bold text-lg text-[#1A1A1A]">おすすめのワイン TOP3</h3>
+                {/* ④ タイトル文言の変更 */}
+                <h3 className="font-serif font-bold text-lg text-[#1A1A1A]">あなたの味わいに近いワイン TOP3</h3>
               </div>
               <div className="space-y-3">
                 {diagnosticResult.wines.map((wine: any, idx: number) => (
@@ -292,6 +388,24 @@ export default function FaceReadingUI() {
       )}
 
       <style dangerouslySetInnerHTML={{__html: `
+        /* スキャンラインのアニメーション */
+        @keyframes scan {
+          0% { top: 10%; opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { top: 90%; opacity: 0; }
+        }
+
+        /* 文字打ち込みのアニメーション */
+        @keyframes typing { from { width: 0 } to { width: 100% } }
+        
+        .animate-typing-1 { animation: typing 0.8s steps(28) forwards; }
+        .animate-typing-2 { animation: typing 0.6s steps(27) forwards; }
+        .animate-typing-3 { animation: typing 0.6s steps(25) forwards; }
+        .animate-typing-4 { animation: typing 0.8s steps(29) forwards; }
+        .animate-typing-5 { animation: typing 0.9s steps(33) forwards; }
+        .animate-typing-6 { animation: typing 0.5s steps(15) forwards; }
+
         /* ホワイトアウトアニメーション (ローディング) */
         @keyframes whiteout {
           0% { background-color: rgba(255,255,255,0); }
