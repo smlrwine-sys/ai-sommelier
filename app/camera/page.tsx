@@ -177,6 +177,19 @@ export default function FaceReadingUI() {
       setDiagnosticResult({
         taste: { body: 4, acidity: 3, tannin: 5, sweetness: 1 },
         title: "情熱のフルボディ・スマイル",
+        // ↓追加：スコア、アロマ、品種データ
+        scores: { 
+          award: Math.floor(Math.random() * 11) + 85, // 85〜95のランダム
+          rank: Math.floor(Math.random() * 50) + 1,   // 1〜50位
+          peakAge: Math.floor(Math.random() * 10) + 1, // 1〜10年後
+          area: '港区' // ※本番ではお店のデータ(store.area)等と連携させます
+        },
+        aromas: ['ブラックベリー', 'ダークチョコ', '黒胡椒'],
+        grapes: [
+          { name: 'カベルネ・ソーヴィニヨン', description: '力強いタンニンと深いコクを持つ、ワインの王様。骨格のしっかりしたあなたに。' },
+          { name: 'シラー', description: 'スパイシーでエネルギッシュ。あなたのその情熱的な笑顔を引き立てる品種です。' },
+          { name: 'マルベック', description: '果実味が豊かで、どこかミステリアスな魅力を持つ。奥深い表情にマッチします。' }
+        ],
         comment: "あなたの力強く自信に満ちた表情から、しっかりとした骨格と深いコクを持つフルボディの赤ワインがぴったりだと判断しました。今日のディナーは少し贅沢にステーキなどはいかがでしょうか。",
         wines: DUMMY_WINES
       });
@@ -284,6 +297,23 @@ export default function FaceReadingUI() {
             {/* ① 撮影した顔がワイングラスにはめ込まれる演出 */}
             <div className="flex flex-col items-center pt-8">
               <div className="relative w-48 h-[250px] animate-float">
+                 
+                 {/* ↓追加：グラスの周りに浮遊するアロマ */}
+                 {diagnosticResult.aromas && diagnosticResult.aromas.map((aroma: string, idx: number) => {
+                   const positions = [
+                     "top-4 -left-16",   // 左上
+                     "top-24 -right-16", // 右中
+                     "bottom-12 -left-10" // 左下
+                   ];
+                   return (
+                     <div key={idx} 
+                          className={`absolute ${positions[idx]} bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-lg border border-[#E5E0D8] z-20 animate-float text-[10px] font-bold text-[#A82B3B] whitespace-nowrap`}
+                          style={{ animationDelay: `${idx * 0.7}s` }}>
+                       ✨ {aroma}
+                     </div>
+                   );
+                 })}
+
                  {/* ② ワイングラスのボウル部分（白/透明ベースに変更） */}
                  <div className="absolute inset-x-0 top-0 h-[180px] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.15)] z-10 border border-white/60" 
                       style={{ borderRadius: '40% 40% 45% 45% / 10% 10% 45% 45%', backgroundColor: 'rgba(255, 255, 255, 0.2)', backdropFilter: 'blur(8px)' }}>
@@ -313,9 +343,29 @@ export default function FaceReadingUI() {
             </div>
 
             {/* ② あなたの表情分析 */}
-            <div className="text-center space-y-3">
-              <h2 className="text-[10px] font-black text-[#A82B3B] tracking-[0.3em] uppercase">あなたの表情分析</h2>
-              <h3 className="text-3xl font-serif font-black leading-tight drop-shadow-sm">{diagnosticResult.title}</h3>
+            <div className="text-center space-y-6">
+              <div className="space-y-3">
+                <h2 className="text-[10px] font-black text-[#A82B3B] tracking-[0.3em] uppercase">あなたの表情分析</h2>
+                <h3 className="text-3xl font-serif font-black leading-tight drop-shadow-sm">{diagnosticResult.title}</h3>
+              </div>
+              
+              {/* ↓追加：表情から算出された数値スコア群 */}
+              {diagnosticResult.scores && (
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-white p-3 rounded-2xl shadow-sm border border-[#E5E0D8] flex flex-col items-center justify-center">
+                    <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter mb-1 text-center">AI WINE<br/>AWARD</span>
+                    <span className="text-xl font-serif font-black text-[#A82B3B]">{diagnosticResult.scores.award}<span className="text-[10px]">pt</span></span>
+                  </div>
+                  <div className="bg-[#1A1A1A] p-3 rounded-2xl shadow-lg border border-[#1A1A1A] flex flex-col items-center justify-center">
+                    <span className="text-[8px] font-bold text-white/50 uppercase tracking-tighter mb-1 text-center">{diagnosticResult.scores.area}<br/>ランキング</span>
+                    <span className="text-xl font-serif font-black text-white">{diagnosticResult.scores.rank}<span className="text-[10px]">位</span></span>
+                  </div>
+                  <div className="bg-white p-3 rounded-2xl shadow-sm border border-[#E5E0D8] flex flex-col items-center justify-center">
+                    <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter mb-1 text-center">あなたの<br/>飲み頃</span>
+                    <span className="text-xl font-serif font-black text-[#A82B3B]">+{diagnosticResult.scores.peakAge}<span className="text-[10px]">年</span></span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* ③ パラメーター表示 */}
@@ -347,7 +397,6 @@ export default function FaceReadingUI() {
             {/* ⑤ 近似値のワインTOP3 */}
             <div className="space-y-4">
               <div className="flex items-end justify-between border-b border-[#E5E0D8] pb-2">
-                {/* ④ タイトル文言の変更 */}
                 <h3 className="font-serif font-bold text-lg text-[#1A1A1A]">あなたの味わいに近いワイン TOP3</h3>
               </div>
               <div className="space-y-3">
@@ -372,6 +421,28 @@ export default function FaceReadingUI() {
                 ))}
               </div>
             </div>
+
+            {/* ↓追加：あなたに近い品種TOP3 */}
+            {diagnosticResult.grapes && (
+              <div className="space-y-4 pt-4">
+                <div className="flex items-end justify-between border-b border-[#E5E0D8] pb-2">
+                  <h3 className="font-serif font-bold text-lg text-[#1A1A1A]">あなたに近い品種 TOP3</h3>
+                </div>
+                <div className="space-y-3">
+                  {diagnosticResult.grapes.map((grape: any, idx: number) => (
+                    <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-start">
+                      <div className="w-8 h-8 bg-[#0A1F11] text-white rounded-full flex items-center justify-center font-serif font-bold text-sm shrink-0 shadow-md mt-1">
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="font-black text-[15px] leading-tight text-[#1A1A1A] mb-1">{grape.name}</p>
+                        <p className="text-xs text-gray-600 leading-relaxed font-medium">{grape.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* ⑥ 診断結果をシェアする */}
             <div className="pt-8 pb-10 space-y-5 text-center">
