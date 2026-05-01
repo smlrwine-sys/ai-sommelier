@@ -373,12 +373,11 @@ function AdminMasterView({ setMode }: any) {
     const { error } = await supabase.from(table).delete().eq('id', id);
     
     if (error) {
-      if (error.code === '23503') {
-        alert("エラー：この項目に紐付いている料理や在庫があるため削除できません。先にそれらを削除するか、SQLでの制約変更が必要です。");
-      } else {
-        alert("削除エラー: " + error.message);
-      }
+      // エラーの詳細を表示するように強化
+      console.error("Delete error details:", error);
+      alert(`削除できませんでした。\n理由: ${error.message}\nエラーコード: ${error.code}`);
     } else {
+      alert("削除が完了しました"); // 成功したこともハッキリ伝える
       loadMasterData();
     }
   };
