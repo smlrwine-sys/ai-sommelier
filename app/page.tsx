@@ -11,12 +11,6 @@ import {
 } from 'lucide-react';
 
 
-import { 
-  ChevronLeft, MapPin, Sparkles, Store, Utensils, Heart, ThumbsUp, Quote, Grape, Leaf, ChefHat, 
-  Building, Wine, Plus, Trash2, Save, Settings, Hand, Smile, ArrowRight, MessageCircle, Bookmark,
-  Droplets, Flame
-} from 'lucide-react';
-
 // ==========================================
 // 音声・触覚フィードバック (Haptics & Sound)
 // ==========================================
