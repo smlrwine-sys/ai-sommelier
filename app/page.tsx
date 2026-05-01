@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase';
 import ReCAPTCHA from "react-google-recaptcha";
 import { 
   ChevronLeft, MapPin, Sparkles, Store, Utensils, Heart, ThumbsUp, Quote, Grape, Leaf, ChefHat, 
-  Building, Wine, Plus, Trash2, Save, Settings, Hand, Smile, ArrowRight, MessageCircle, Bookmark
+  Building, Wine, Plus, Trash2, Save, Settings, Hand, Smile, ArrowRight, MessageCircle, Bookmark,
+  Droplets, Flame
 } from 'lucide-react';
 
 // --- アロマ画像辞書 ---
@@ -139,6 +140,75 @@ const RadarChart = ({ data }: { data: any }) => {
   );
 };
 
+// --- アロマの分類リスト（味わい検索用） ---
+const FRUITY_AROMAS = ['インク', 'ブラックチェリー', 'ブラックベリー', 'フランボワーズ', 'バナナ', 'パイナップル', '洋ナシ', 'アプリコット', '花梨', 'ライチ', 'メロン', 'マンゴー'];
+const SPICY_AROMAS = ['胡椒', 'ピーマン', 'タール', 'ハーブ', '革', '樽', 'タバコ', 'ミント', 'オレンジの皮'];
+
+// === 洗練されたサイバーダイヤルコンポーネント ===
+const CyberDial = ({ value, onChange, labelLeft, labelRight, title, icon: Icon, startRGB, endRGB }: any) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const startX = useRef(0);
+  const startVal = useRef(value);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    setIsDragging(true); startX.current = e.clientX; startVal.current = value;
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+  };
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX.current;
+    let newVal = startVal.current - (dx / 3); 
+    newVal = Math.max(0, Math.min(100, Math.round(newVal)));
+    onChange(newVal);
+  };
+  const handlePointerUp = () => setIsDragging(false);
+
+  const calculateColor = (index: number) => {
+    if (!startRGB || !endRGB) return 'white';
+    const ratio = index / 100;
+    const r = Math.round(startRGB[0] + ratio * (endRGB[0] - startRGB[0]));
+    const g = Math.round(startRGB[1] + ratio * (endRGB[1] - startRGB[1]));
+    const b = Math.round(startRGB[2] + ratio * (endRGB[2] - startRGB[2]));
+    return `rgb(${r}, ${g}, ${b})`;
+  };
+
+  return (
+    <div className="flex items-stretch bg-white p-2.5 rounded-[1.5rem] shadow-sm border border-[#E5E0D8]">
+      <div className="flex flex-col justify-center w-[115px] pl-2 pr-3 shrink-0 border-r border-[#E5E0D8] border-dashed mr-3">
+        <div className="flex items-center gap-1.5 text-[#1A1A1A] mb-2">
+          <Icon size={16} className="text-[#A82B3B]" />
+          <h4 className="font-serif font-bold text-[13px] tracking-tight leading-tight">{title}</h4>
+        </div>
+        <div className="flex flex-col gap-1 mt-1">
+          <span className="text-[9px] font-black text-gray-500 uppercase tracking-tighter leading-none">{labelLeft}</span>
+          <span className="text-[8px] font-bold text-gray-300 uppercase tracking-tighter leading-none text-center">▼</span>
+          <span className="text-[9px] font-black text-gray-500 uppercase tracking-tighter leading-none">{labelRight}</span>
+        </div>
+      </div>
+      <div 
+        className="flex-1 relative h-[90px] overflow-hidden rounded-2xl bg-zinc-950 shadow-2xl p-4 touch-none cursor-grab active:cursor-grabbing"
+        onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}
+      >
+        <div className="pointer-events-none absolute right-0 bottom-0 left-0 z-30 h-[40%] bg-gradient-to-b from-transparent to-black" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-30 w-10 bg-gradient-to-r from-black to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-30 w-10 bg-gradient-to-l from-black to-transparent" />
+        <div className="pointer-events-none absolute left-1/2 z-20 h-5 w-[3px] -translate-x-1/2 top-0 rounded-b-full bg-white shadow-[0_0_10px_rgba(255,255,255,1)]" />
+        <div className="pointer-events-none absolute bottom-1 left-1/2 -translate-x-1/2 z-30 flex items-baseline">
+          <span className="text-white font-mono text-[22px] font-black drop-shadow-md">{value}</span>
+        </div>
+        <div className="absolute left-1/2 top-0 w-[400px] h-[400px]" style={{ transform: `translateX(-50%) rotate(${-value * 3.6}deg)`, transition: isDragging ? 'none' : 'transform 0.1s cubic-bezier(0.25, 1, 0.5, 1)' }}>
+          {Array.from({ length: 100 }).map((_, i) => (
+            <div key={i} className="absolute inset-0 flex justify-center" style={{ transform: `rotate(${i * 3.6}deg)` }}>
+              <div className={`absolute top-0 ${i % 10 === 0 ? 'h-5 w-[2px]' : 'h-3 w-[1px]'}`} style={{ backgroundColor: calculateColor(i) }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 const inputClass = "w-full p-2 border rounded text-sm text-slate-800 bg-white mb-3";
 const labelClass = "block text-xs font-bold text-slate-500 mb-1";
 
@@ -158,8 +228,8 @@ const labelClass = "block text-xs font-bold text-slate-500 mb-1";
       <div className="sm:col-span-2 p-4 bg-slate-50 rounded-xl border border-slate-200">
         <label className={labelClass}>オプションON/OFF</label>
         <div className="flex flex-wrap gap-4 mt-2">
-          {/* ↓修正：show_scenes:'シーン検索' を追加し、デフォルトをONに */}
-          {Object.entries({has_palm_reading:'手相診断', has_face_reading:'人相診断', has_reviews:'Google口コミ', has_likes:'いいねボタン', has_comment_ticker:'コメント表示', show_menu_tags:'今日の献立', show_recommendations:'おすすめ商品', show_scenes:'シーン検索'}).map(([k,v]) => {
+          {/* ↓修正：show_taste:'味わい検索' を追加 */}
+          {Object.entries({has_palm_reading:'手相診断', has_face_reading:'人相診断', has_reviews:'Google口コミ', has_likes:'いいねボタン', has_comment_ticker:'コメント表示', show_menu_tags:'今日の献立', show_recommendations:'おすすめ商品', show_scenes:'シーン検索', show_taste:'味わい検索'}).map(([k,v]) => {
             const optObj = typeof form.options === 'string' ? JSON.parse(form.options || '{}') : (form.options || {});
             const defaultOn = ['has_reviews', 'has_likes', 'has_comment_ticker', 'show_menu_tags', 'show_recommendations', 'show_scenes'].includes(k);
             const isChecked = optObj[k] !== undefined ? optObj[k] : defaultOn;
@@ -863,6 +933,13 @@ function CustomerApp() {
   const [activeSubTab, setActiveSubTab] = useState(''); 
   const [activeTagTab, setActiveTagTab] = useState(''); 
   const [searchParams, setSearchParams] = useState({ colorValue: 50, scene: '', tag: '', type: '', menu: '' });
+// ↓追加：味わいダイヤルのステートと、STEP02のタブステート
+  const [weight, setWeight] = useState(50);
+  const [character, setCharacter] = useState(50);
+  const [texture, setTexture] = useState(50);
+  const [activeStep2Tab, setActiveStep2Tab] = useState<'scene' | 'taste'>('scene');
+
+  const [resultWine, setResultWine] = useState<any>(null);
   const [resultWine, setResultWine] = useState<any>(null);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [commentForm, setCommentForm] = useState({ nickname: '', comment: '' });
@@ -1038,12 +1115,50 @@ function CustomerApp() {
         }
       }
       
+      // どのモード（タブ）が現在有効かを判定
+      const isTasteMode = options.show_taste && (!options.show_scenes || activeStep2Tab === 'taste');
+      const isSceneMode = options.show_scenes && (!options.show_taste || activeStep2Tab === 'scene');
+
       let maxScore = 0;
       const bestMatch = wines.reduce((prev, curr) => {
         let pS = 100 - Math.abs((prev.color_value || 50) - searchParams.colorValue);
         let cS = 100 - Math.abs((curr.color_value || 50) - searchParams.colorValue);
-        if (searchParams.scene && prev.tags?.includes(searchParams.scene)) pS += 20;
-        if (searchParams.scene && curr.tags?.includes(searchParams.scene)) cS += 20;
+        
+        // --- シーンモードが有効な場合の加点 ---
+        if (isSceneMode) {
+          if (searchParams.scene && prev.tags?.includes(searchParams.scene)) pS += 20;
+          if (searchParams.scene && curr.tags?.includes(searchParams.scene)) cS += 20;
+        }
+
+        // --- 味わいモードが有効な場合の加減点 ---
+        if (isTasteMode) {
+          const calcTasteScore = (wine: any) => {
+            let score = 0;
+            const wWeight = (wine.body - 1) * 25; 
+            score -= Math.abs(weight - wWeight) * 0.4;
+            
+            if (character < 50) {
+              const targetAcidity = 5 - (character / 50) * 2;
+              score -= Math.abs(targetAcidity - wine.acidity) * 5;
+            } else {
+              const fC = wine.aromas?.filter((a:string) => FRUITY_AROMAS.includes(a)).length || 0;
+              score += fC > 0 ? Math.min(fC * 5, 15) : -15;
+            }
+            
+            if (texture < 50) {
+              const targetTannin = 1 + (texture / 50) * 2;
+              score -= Math.abs(targetTannin - wine.tannin) * 5;
+            } else {
+              const sC = wine.aromas?.filter((a:string) => SPICY_AROMAS.includes(a)).length || 0;
+              score += sC > 0 ? Math.min(sC * 5, 15) : -15;
+            }
+            return score;
+          };
+          pS += calcTasteScore(prev);
+          cS += calcTasteScore(curr);
+        }
+
+        // --- タグ（Step03）の加点 ---
         if (searchParams.tag && prev.tags?.includes(searchParams.tag)) pS += 15;
         if (searchParams.tag && curr.tags?.includes(searchParams.tag)) cS += 15;
         
@@ -1051,11 +1166,9 @@ function CustomerApp() {
         cS = Math.min(99, cS);
 
         if (cS > pS) {
-          maxScore = cS;
-          return curr;
+          maxScore = cS; return curr;
         } else {
-          maxScore = Math.max(maxScore, pS);
-          return prev;
+          maxScore = Math.max(maxScore, pS); return prev;
         }
       }, wines[0]);
 
@@ -1171,9 +1284,9 @@ function CustomerApp() {
   const tClass = THEMES[store.theme] || THEMES.luxury;
 
   // 追加：保存されたオプションを安全にオブジェクトとして取得
-  const optObj = typeof store.options === 'string' ? JSON.parse(store.options || '{}') : (store.options || {});
-  // ↓修正：show_scenes をデフォルトのオプション設定に追加
-  const options = { has_palm_reading: false, has_face_reading: false, has_reviews: true, has_likes: true, has_comment_ticker: true, show_menu_tags: true, show_recommendations: true, show_scenes: true, ...optObj };
+  const optObj = typeof store.options === 'string' ? JSON.parse(store.options || '{}') : (store.options || {});
+  // ↓修正：show_taste を追加
+  const options = { has_palm_reading: false, has_face_reading: false, has_reviews: true, has_likes: true, has_comment_ticker: true, show_menu_tags: true, show_recommendations: true, show_scenes: true, show_taste: false, ...optObj };
 
   return (
     <div className={`min-h-screen font-sans transition-colors duration-700 ${tClass.bg} ${tClass.text}`}>
@@ -1524,26 +1637,59 @@ function CustomerApp() {
               </div>
             </section>
 
-            {/* STEP 02: シーンから選ぶ（オプションONの時のみ表示） */}
-            {options.show_scenes !== false && (
+            {/* STEP 02: シーン または 味わいから選ぶ（店舗オプションによる出し分け） */}
+            { (options.show_scenes || options.show_taste) && (
               <section className="space-y-6 text-left">
                 <div className="flex justify-between items-end border-b border-[#E5E0D8] pb-2">
-                  <h3 className="text-xl font-serif font-bold text-[#1A1A1A]">シーンから選ぶ</h3>
+                  <h3 className="text-xl font-serif font-bold text-[#1A1A1A]">
+                    {options.show_scenes && options.show_taste ? '気分・味わいで選ぶ' : (options.show_taste ? '味わいから選ぶ' : 'シーンから選ぶ')}
+                  </h3>
                   <span className="text-[10px] text-[#A82B3B] font-black tracking-widest uppercase">Step 02</span>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {(store.business_type === 'restaurant' ? SCENES_RESTAURANT : SCENES_RETAIL).map(s => (
-                    <button key={s} onClick={() => setSearchParams({...searchParams, scene: s})} 
-                      className={`h-40 rounded-3xl flex flex-col items-center justify-center transition-all duration-500 shadow-sm border-2 ${
-                        searchParams.scene === s 
-                          ? 'bg-[#0A1F11] text-white border-[#0A1F11] shadow-xl scale-105 z-10' 
-                          : 'bg-[#F3F0EC] text-[#1A1A1A] border-transparent opacity-70 hover:opacity-100'
-                      }`}>
-                      <span className="text-lg font-serif font-bold tracking-tight">{s}</span>
-                      <div className={`w-8 h-[1.5px] mt-4 transition-colors ${searchParams.scene === s ? 'bg-amber-400' : 'bg-black/10'}`} />
+
+                {/* タブ切り替え（両方ONの場合のみ表示） */}
+                {options.show_scenes && options.show_taste && (
+                  <div className="flex bg-[#F3F0EC] p-1.5 rounded-xl border border-[#E5E0D8]">
+                    <button 
+                      onClick={() => setActiveStep2Tab('scene')}
+                      className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all ${activeStep2Tab === 'scene' ? 'bg-white shadow-sm text-[#A82B3B]' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                      気分・シーンで選ぶ
                     </button>
-                  ))}
-                </div>
+                    <button 
+                      onClick={() => setActiveStep2Tab('taste')}
+                      className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all ${activeStep2Tab === 'taste' ? 'bg-white shadow-sm text-[#A82B3B]' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                      味わいにこだわる
+                    </button>
+                  </div>
+                )}
+
+                {/* 状態A：シーン UI */}
+                {options.show_scenes && (!options.show_taste || activeStep2Tab === 'scene') && (
+                  <div className="grid grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-300">
+                    {(store.business_type === 'restaurant' ? SCENES_RESTAURANT : SCENES_RETAIL).map(s => (
+                      <button key={s} onClick={() => setSearchParams({...searchParams, scene: s})} 
+                        className={`h-40 rounded-3xl flex flex-col items-center justify-center transition-all duration-500 shadow-sm border-2 ${
+                          searchParams.scene === s 
+                            ? 'bg-[#0A1F11] text-white border-[#0A1F11] shadow-xl scale-105 z-10' 
+                            : 'bg-[#F3F0EC] text-[#1A1A1A] border-transparent opacity-70 hover:opacity-100'
+                        }`}>
+                        <span className="text-lg font-serif font-bold tracking-tight">{s}</span>
+                        <div className={`w-8 h-[1.5px] mt-4 transition-colors ${searchParams.scene === s ? 'bg-amber-400' : 'bg-black/10'}`} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* 状態B：味わいダイヤル UI */}
+                {options.show_taste && (!options.show_scenes || activeStep2Tab === 'taste') && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300 pt-2">
+                    <CyberDial title="① 重厚感" icon={Droplets} value={weight} onChange={setWeight} labelLeft="Light (軽い)" labelRight="Heavy (重い)" startRGB={[59, 130, 246]} endRGB={[225, 29, 72]} />
+                    <CyberDial title="② キャラクター" icon={Grape} value={character} onChange={setCharacter} labelLeft="Fresh (さっぱり)" labelRight="Fruity (果実)" startRGB={[16, 185, 129]} endRGB={[147, 51, 234]} />
+                    <CyberDial title="③ 質感・余韻" icon={Flame} value={texture} onChange={setTexture} labelLeft="Mild (マイルド)" labelRight="Spicy/Herbal" startRGB={[234, 179, 8]} endRGB={[249, 115, 22]} />
+                  </div>
+                )}
               </section>
             )}
 
