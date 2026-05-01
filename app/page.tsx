@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 // reCAPTCHAをインポート（追加）
 import ReCAPTCHA from "react-google-recaptcha";
