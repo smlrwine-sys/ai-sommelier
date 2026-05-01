@@ -17,8 +17,8 @@ const DUMMY_WINES = [
   { id: '6', name: 'ヘビー・カベルネ', type: '赤', origin: 'アメリカ', body: 5, acidity: 2, tannin: 5, aromas: ['カシス', 'ピーマン', '樽', 'タール'] },
 ];
 
-// === 洗練されたサイバーダイヤルコンポーネント (UICapsule完全再現) ===
-const CyberDial = ({ value, onChange, labelLeft, labelRight, title, icon: Icon }: any) => {
+// === 洗練されたサイバーダイヤルコンポーネント (UICapsule完全再現 + グラデーション色) ===
+const CyberDial = ({ value, onChange, labelLeft, labelRight, title, icon: Icon, startRGB, endRGB }: any) => {
   const [isDragging, setIsDragging] = useState(false);
   const startX = useRef(0);
   const startVal = useRef(value);
@@ -43,6 +43,16 @@ const CyberDial = ({ value, onChange, labelLeft, labelRight, title, icon: Icon }
 
   const handlePointerUp = () => {
     setIsDragging(false);
+  };
+
+  // インデックス(0~100)に応じた美しいグラデーション色を計算
+  const calculateColor = (index: number) => {
+    if (!startRGB || !endRGB) return 'white';
+    const ratio = index / 100;
+    const r = Math.round(startRGB[0] + ratio * (endRGB[0] - startRGB[0]));
+    const g = Math.round(startRGB[1] + ratio * (endRGB[1] - startRGB[1]));
+    const b = Math.round(startRGB[2] + ratio * (endRGB[2] - startRGB[2]));
+    return `rgb(${r}, ${g}, ${b})`;
   };
 
   return (
@@ -92,8 +102,11 @@ const CyberDial = ({ value, onChange, labelLeft, labelRight, title, icon: Icon }
         >
           {Array.from({ length: 100 }).map((_, i) => (
             <div key={i} className="absolute inset-0 flex justify-center" style={{ transform: `rotate(${i * 3.6}deg)` }}>
-              {/* 10目盛りごとに太くて白い線、それ以外は細いグレーの線 */}
-              <div className={`absolute top-0 ${i % 10 === 0 ? 'h-5 w-[2px] bg-white' : 'h-3 w-[1px] bg-zinc-600'}`} />
+              {/* 10目盛りごとに太い線、グラデーションカラーを適用 */}
+              <div 
+                className={`absolute top-0 ${i % 10 === 0 ? 'h-5 w-[2px]' : 'h-3 w-[1px]'}`} 
+                style={{ backgroundColor: calculateColor(i) }}
+              />
             </div>
           ))}
         </div>
@@ -155,22 +168,25 @@ export default function TasteTuningUI() {
           <p className="text-xs font-bold text-gray-500 leading-relaxed">ダイヤルを左右にスワイプして、<br/>直感であなたの求める味わいをチューニングしてください。</p>
         </div>
 
-        {/* 洗練されたコンパクトなサイバーダイヤル群 */}
+        {/* 洗練されたコンパクトなサイバーダイヤル群 (グラデーション色復活) */}
         <div className="space-y-4">
           <CyberDial 
             title="① 重厚感" icon={Droplets} 
             value={weight} onChange={setWeight} 
             labelLeft="Light (軽い)" labelRight="Heavy (重い)" 
+            startRGB={[59, 130, 246]} endRGB={[225, 29, 72]} // 青から赤
           />
           <CyberDial 
             title="② キャラクター" icon={Grape} 
             value={character} onChange={setCharacter} 
             labelLeft="Fresh (さっぱり)" labelRight="Fruity (果実)" 
+            startRGB={[16, 185, 129]} endRGB={[147, 51, 234]} // 緑から紫
           />
           <CyberDial 
             title="③ 質感・余韻" icon={Flame} 
             value={texture} onChange={setTexture} 
             labelLeft="Mild (マイルド)" labelRight="Spicy/Herbal" 
+            startRGB={[234, 179, 8]} endRGB={[249, 115, 22]} // 黄色からオレンジ
           />
         </div>
 
