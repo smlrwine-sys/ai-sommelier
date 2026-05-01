@@ -1016,17 +1016,18 @@ function CustomerApp() {
   const [likedWines, setLikedWines] = useState<string[]>([]);
 
   // === 【修正箇所 3】アプリ全体のボタンに「ポチッ」というリアクションを自動付与 ===
-  useEffect(() => {
-    const handleGlobalClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('button')) {
-        initAudio();
-        playButtonSound();
-      }
-    };
-    document.addEventListener('click', handleGlobalClick);
-    return () => document.removeEventListener('click', handleGlobalClick);
-  }, []);
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // ★修正：buttonタグだけでなく、リンク(a)や、クリック可能な要素(.cursor-pointer)もすべて検知する！
+      if (target.closest('button, a, .cursor-pointer')) {
+        initAudio();
+        playButtonSound();
+      }
+    };
+    document.addEventListener('click', handleGlobalClick);
+    return () => document.removeEventListener('click', handleGlobalClick);
+  }, []);
   // ====================================================================
 
   // ↓追加：診断結果になった時にスコアを0からターゲット値までカウントアップさせる処理
