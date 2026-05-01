@@ -17,8 +17,8 @@ const DUMMY_WINES = [
   { id: '6', name: 'ヘビー・カベルネ', type: '赤', origin: 'アメリカ', body: 5, acidity: 2, tannin: 5, aromas: ['カシス', 'ピーマン', '樽', 'タール'] },
 ];
 
-// === 超高機能サイバーダイヤルコンポーネント（自作で完全再現） ===
-const CyberDial = ({ value, onChange, labelLeft, labelRight, title, icon: Icon, startRGB, endRGB }: any) => {
+// === 洗練されたサイバーダイヤルコンポーネント (UICapsule完全再現) ===
+const CyberDial = ({ value, onChange, labelLeft, labelRight, title, icon: Icon }: any) => {
   const [isDragging, setIsDragging] = useState(false);
   const startX = useRef(0);
   const startVal = useRef(value);
@@ -31,11 +31,12 @@ const CyberDial = ({ value, onChange, labelLeft, labelRight, title, icon: Icon, 
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
   };
 
-  // 指を動かした時（横方向のドラッグで数値を滑らかに変動させる）
+  // 指を動かした時
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
     const dx = e.clientX - startX.current;
-    let newVal = startVal.current + (dx / 3); // dxの割り算で感度を調整
+    // 右にドラッグすると数値が減る（目盛りが右に回る）ように感度調整
+    let newVal = startVal.current - (dx / 3); 
     newVal = Math.max(0, Math.min(100, Math.round(newVal)));
     onChange(newVal);
   };
@@ -44,77 +45,58 @@ const CyberDial = ({ value, onChange, labelLeft, labelRight, title, icon: Icon, 
     setIsDragging(false);
   };
 
-  // 1メモリ3.6度で円形に配置し、現在の値に合わせて全体を回転させる
-  const currentRotation = -value * 3.6;
-
-  // インデックス(0~100)に応じた美しいグラデーション色を計算
-  const calculateColor = (index: number) => {
-    const ratio = index / 100;
-    const r = Math.round(startRGB[0] + ratio * (endRGB[0] - startRGB[0]));
-    const g = Math.round(startRGB[1] + ratio * (endRGB[1] - startRGB[1]));
-    const b = Math.round(startRGB[2] + ratio * (endRGB[2] - startRGB[2]));
-    return `rgb(${r}, ${g}, ${b})`;
-  };
-
   return (
-    <div className="flex flex-col items-center select-none">
-      <div className="flex items-center gap-2 mb-3 text-[#1A1A1A]">
-        <Icon size={18} />
-        <h4 className="font-serif font-bold text-[15px]">{title}</h4>
-      </div>
+    <div className="flex items-stretch bg-white p-2.5 rounded-[1.5rem] shadow-sm border border-[#E5E0D8]">
       
-      {/* ダイヤル本体（黒ベースで縦幅を抑えたスタイリッシュな形状） */}
+      {/* 左側：タイトルとラベル（縦幅を抑えるための横並びレイアウト） */}
+      <div className="flex flex-col justify-center w-[115px] pl-2 pr-3 shrink-0 border-r border-[#E5E0D8] border-dashed mr-3">
+        <div className="flex items-center gap-1.5 text-[#1A1A1A] mb-2">
+          <Icon size={16} className="text-[#A82B3B]" />
+          <h4 className="font-serif font-bold text-[13px] tracking-tight leading-tight">{title}</h4>
+        </div>
+        <div className="flex flex-col gap-1 mt-1">
+          <span className="text-[9px] font-black text-gray-500 uppercase tracking-tighter leading-none">{labelLeft}</span>
+          <span className="text-[8px] font-bold text-gray-300 uppercase tracking-tighter leading-none text-center">▼</span>
+          <span className="text-[9px] font-black text-gray-500 uppercase tracking-tighter leading-none">{labelRight}</span>
+        </div>
+      </div>
+
+      {/* 右側：UICapsule風ダイヤル本体 */}
       <div 
-        className="relative w-full max-w-[320px] h-28 bg-black rounded-3xl overflow-hidden shadow-2xl touch-none cursor-grab active:cursor-grabbing border border-black/10 mx-auto"
+        className="flex-1 relative h-[90px] overflow-hidden rounded-2xl bg-zinc-950 shadow-2xl p-4 touch-none cursor-grab active:cursor-grabbing"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
-        {/* 左右と下部のフェードシャドウ（立体感と奥行きを出す） */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-24 bg-gradient-to-r from-black to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-24 bg-gradient-to-l from-black to-transparent" />
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-20 h-12 bg-gradient-to-t from-black to-transparent" />
-        
-        {/* 数値表示（NumberFlowの代わり） */}
-        <div className="absolute top-3 left-0 right-0 flex justify-center z-40 pointer-events-none">
-          <span className="text-white font-mono text-2xl font-bold tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,1)]">{value}</span>
-        </div>
+        {/* フェードシャドウ（立体感の演出） */}
+        <div className="pointer-events-none absolute right-0 bottom-0 left-0 z-30 h-[40%] bg-gradient-to-b from-transparent to-black" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-30 w-10 bg-gradient-to-r from-black to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-30 w-10 bg-gradient-to-l from-black to-transparent" />
 
         {/* センターの白いインジケーター（針） */}
-        <div className="pointer-events-none absolute left-1/2 top-11 z-30 h-10 w-[2px] -translate-x-1/2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,1)]" />
+        <div className="pointer-events-none absolute left-1/2 z-20 h-5 w-[3px] -translate-x-1/2 top-0 rounded-b-full bg-white shadow-[0_0_10px_rgba(255,255,255,1)]" />
 
-        {/* 目盛りの円盤 */}
+        {/* 数値表示 */}
+        <div className="pointer-events-none absolute bottom-1 left-1/2 -translate-x-1/2 z-30 flex items-baseline">
+          <span className="text-white font-mono text-[22px] font-black drop-shadow-md">{value}</span>
+        </div>
+
+        {/* 目盛りの円盤（巨大な円を配置し、上部だけを表示） */}
         <div 
-          className="absolute left-1/2 top-14 w-[280px] h-[280px] rounded-full"
+          className="absolute left-1/2 top-0 w-[400px] h-[400px]"
           style={{ 
-            transform: `translateX(-50%) rotate(${currentRotation}deg)`, 
-            transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)' 
+            transform: `translateX(-50%) rotate(${-value * 3.6}deg)`,
+            transition: isDragging ? 'none' : 'transform 0.1s cubic-bezier(0.25, 1, 0.5, 1)'
           }}
         >
-          {Array.from({ length: 101 }).map((_, i) => {
-            const angle = i * 3.6;
-            const isTenth = i % 10 === 0; // 10ごとに太い線にする
-            return (
-              <div
-                key={i}
-                className="absolute inset-0 flex justify-center"
-                style={{ transform: `rotate(${angle}deg)` }}
-              >
-                <div 
-                  className={`rounded-full ${isTenth ? 'h-6 w-[2px]' : 'h-3 w-[1px]'}`} 
-                  style={{ backgroundColor: calculateColor(i), opacity: 0.9 }} 
-                />
-              </div>
-            );
-          })}
+          {Array.from({ length: 100 }).map((_, i) => (
+            <div key={i} className="absolute inset-0 flex justify-center" style={{ transform: `rotate(${i * 3.6}deg)` }}>
+              {/* 10目盛りごとに太くて白い線、それ以外は細いグレーの線 */}
+              <div className={`absolute top-0 ${i % 10 === 0 ? 'h-5 w-[2px] bg-white' : 'h-3 w-[1px] bg-zinc-600'}`} />
+            </div>
+          ))}
         </div>
-      </div>
-      
-      {/* ガイドラベル */}
-      <div className="flex justify-between w-full max-w-[300px] px-2 mt-3">
-        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{labelLeft}</span>
-        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{labelRight}</span>
       </div>
     </div>
   );
@@ -167,37 +149,34 @@ export default function TasteTuningUI() {
         <div className="w-10" />
       </div>
 
-      <div className="max-w-md mx-auto p-6 space-y-12">
-        <div className="text-center space-y-2">
+      <div className="max-w-md mx-auto p-4 space-y-10 mt-4">
+        <div className="text-left space-y-2 mb-6">
           <h2 className="text-3xl font-serif font-black text-[#A82B3B]">Tasting Dial</h2>
-          <p className="text-xs font-bold text-gray-500 leading-relaxed">スライダーを左右にドラッグして、<br/>直感であなたの求める味わいをチューニングしてください。</p>
+          <p className="text-xs font-bold text-gray-500 leading-relaxed">ダイヤルを左右にスワイプして、<br/>直感であなたの求める味わいをチューニングしてください。</p>
         </div>
 
-        {/* 洗練されたサイバーダイヤル群 */}
-        <div className="space-y-8">
+        {/* 洗練されたコンパクトなサイバーダイヤル群 */}
+        <div className="space-y-4">
           <CyberDial 
             title="① 重厚感" icon={Droplets} 
             value={weight} onChange={setWeight} 
             labelLeft="Light (軽い)" labelRight="Heavy (重い)" 
-            startRGB={[59, 130, 246]} endRGB={[225, 29, 72]} // 青から赤へのグラデーション
           />
           <CyberDial 
             title="② キャラクター" icon={Grape} 
             value={character} onChange={setCharacter} 
-            labelLeft="Fresh (さっぱり)" labelRight="Fruity (果実味)" 
-            startRGB={[16, 185, 129]} endRGB={[147, 51, 234]} // 緑から紫へのグラデーション
+            labelLeft="Fresh (さっぱり)" labelRight="Fruity (果実)" 
           />
           <CyberDial 
             title="③ 質感・余韻" icon={Flame} 
             value={texture} onChange={setTexture} 
             labelLeft="Mild (マイルド)" labelRight="Spicy/Herbal" 
-            startRGB={[234, 179, 8]} endRGB={[249, 115, 22]} // 黄色からオレンジへのグラデーション
           />
         </div>
 
         {/* リアルタイム結果表示 */}
-        <div className="pt-10 border-t border-[#E5E0D8] space-y-4">
-          <h3 className="font-serif font-bold text-lg text-center">この味わいに近いワイン TOP3</h3>
+        <div className="pt-8 border-t border-[#E5E0D8] space-y-4">
+          <h3 className="font-serif font-bold text-lg text-left">この味わいに近いワイン TOP3</h3>
           <div className="space-y-3">
             {matchedWines.map((wine, idx) => (
               <div key={wine.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
@@ -205,7 +184,7 @@ export default function TasteTuningUI() {
                   <span>{idx + 1}</span>
                 </div>
                 <div className="flex-1 text-left space-y-1">
-                  <p className="font-black text-lg leading-tight text-[#1A1A1A]">{wine.name}</p>
+                  <p className="font-black text-[15px] leading-tight text-[#1A1A1A]">{wine.name}</p>
                   <div className="flex gap-2">
                     <span className="text-[10px] font-bold text-[#A82B3B] bg-rose-50 px-2 py-0.5 rounded">スコア: {wine.score}</span>
                     <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">ボディ: {wine.body}</span>
