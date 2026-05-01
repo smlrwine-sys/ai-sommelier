@@ -1133,23 +1133,31 @@ function CustomerApp() {
         if (isTasteMode) {
           const calcTasteScore = (wine: any) => {
             let score = 0;
-            const wWeight = (wine.body - 1) * 25; 
-            score -= Math.abs(weight - wWeight) * 0.4;
+            // ★バグ修正：データが wine.body ではなく wine.taste.body 等の階層に入っている
+            const wBody = wine.taste?.body || 3;
+            const wAcidity = wine.taste?.acidity || 3;
+            const wTannin = wine.taste?.tannin || 3;
+
+            // ①重厚感の判定（比重を強化）
+            const wWeight = (wBody - 1) * 25; 
+            score -= Math.abs(weight - wWeight) * 0.8; 
             
+            // ②キャラクターの判定（比重を強化）
             if (character < 50) {
               const targetAcidity = 5 - (character / 50) * 2;
-              score -= Math.abs(targetAcidity - wine.acidity) * 5;
+              score -= Math.abs(targetAcidity - wAcidity) * 10;
             } else {
               const fC = wine.aromas?.filter((a:string) => FRUITY_AROMAS.includes(a)).length || 0;
-              score += fC > 0 ? Math.min(fC * 5, 15) : -15;
+              score += fC > 0 ? Math.min(fC * 10, 30) : -20;
             }
             
+            // ③質感・余韻の判定（比重を強化）
             if (texture < 50) {
               const targetTannin = 1 + (texture / 50) * 2;
-              score -= Math.abs(targetTannin - wine.tannin) * 5;
+              score -= Math.abs(targetTannin - wTannin) * 10;
             } else {
               const sC = wine.aromas?.filter((a:string) => SPICY_AROMAS.includes(a)).length || 0;
-              score += sC > 0 ? Math.min(sC * 5, 15) : -15;
+              score += sC > 0 ? Math.min(sC * 10, 30) : -20;
             }
             return score;
           };
