@@ -78,8 +78,8 @@ const RadialSlider = ({ value, onChange, labelLeft, labelRight, title, icon: Ico
           <path d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`} fill="none" stroke="#F3F0EC" strokeWidth="16" strokeLinecap="round" />
           {/* アクティブな色の線 */}
           {value > 0 && <path d={pathData} fill="none" stroke="currentColor" className={colorClass} strokeWidth="16" strokeLinecap="round" />}
-          {/* ドラッグするハンドル */}
-          <circle cx={handleX} cy={handleY} r="12" fill="white" stroke="currentColor" className={colorClass} strokeWidth="4" shadow="0 2px 5px rgba(0,0,0,0.2)" />
+          {/* ドラッグするハンドル（shadow属性をstyleに変更して修正） */}
+          <circle cx={handleX} cy={handleY} r="12" fill="white" stroke="currentColor" className={colorClass} strokeWidth="4" style={{ filter: 'drop-shadow(0px 2px 5px rgba(0,0,0,0.2))' }} />
         </svg>
         
         {/* ラベル */}
