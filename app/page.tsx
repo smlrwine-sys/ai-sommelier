@@ -10,6 +10,66 @@ import {
   Droplets, Flame
 } from 'lucide-react';
 
+
+import { 
+  ChevronLeft, MapPin, Sparkles, Store, Utensils, Heart, ThumbsUp, Quote, Grape, Leaf, ChefHat, 
+  Building, Wine, Plus, Trash2, Save, Settings, Hand, Smile, ArrowRight, MessageCircle, Bookmark,
+  Droplets, Flame
+} from 'lucide-react';
+
+// ==========================================
+// 音声・触覚フィードバック (Haptics & Sound)
+// ==========================================
+let audioCtx: AudioContext | null = null;
+
+const initAudio = () => {
+  if (typeof window !== 'undefined') {
+    if (!audioCtx) {
+      const AC = window.AudioContext || (window as any).webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume(); // ブラウザの制限を解除
+    }
+  }
+};
+
+// ① ダイヤル用の「カチカチ」音（メカニカルな音）
+const playTickSound = () => {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.03);
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.03);
+  
+  if (navigator.vibrate) navigator.vibrate(5); // Android用：極短の微振動
+};
+
+// ② ボタン用の「ポチッ」音（心地よい電子音）
+const playButtonSound = () => {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.08);
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.08);
+  
+  if (navigator.vibrate) navigator.vibrate(10); // Android用：少し長めの振動
+};
+
 // --- アロマ画像辞書 ---
 const AROMA_IMAGES: Record<string, string> = {
   "ドライフルーツ": "https://wsommelier.com/client_info/WSOMMELIER/img/content/aroma_dried-fruit.png",
@@ -149,16 +209,28 @@ const CyberDial = ({ value, onChange, labelLeft, labelRight, title, icon: Icon, 
   const [isDragging, setIsDragging] = useState(false);
   const startX = useRef(0);
   const startVal = useRef(value);
+  const lastTickVal = useRef(value); // 追加：最後に音が鳴った数値を記憶
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    setIsDragging(true); startX.current = e.clientX; startVal.current = value;
+    initAudio(); // 触った瞬間にオーディオを有効化
+    setIsDragging(true); 
+    startX.current = e.clientX; 
+    startVal.current = value;
+    lastTickVal.current = value;
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
   };
+
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
     const dx = e.clientX - startX.current;
     let newVal = startVal.current - (dx / 3); 
     newVal = Math.max(0, Math.min(100, Math.round(newVal)));
+    
+    // ★追加：値が変動した瞬間だけ「カチッ！」と鳴らし、振動させる
+    if (newVal !== lastTickVal.current) {
+      playTickSound();
+      lastTickVal.current = newVal;
+    }
     onChange(newVal);
   };
   const handlePointerUp = () => setIsDragging(false);
@@ -948,6 +1020,20 @@ function CustomerApp() {
   // ↓追加：カウントアップ表示用の状態
   const [displayScore, setDisplayScore] = useState(0);
   const [likedWines, setLikedWines] = useState<string[]>([]);
+
+  // === 【修正箇所 3】アプリ全体のボタンに「ポチッ」というリアクションを自動付与 ===
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('button')) {
+        initAudio();
+        playButtonSound();
+      }
+    };
+    document.addEventListener('click', handleGlobalClick);
+    return () => document.removeEventListener('click', handleGlobalClick);
+  }, []);
+  // ====================================================================
 
   // ↓追加：診断結果になった時にスコアを0からターゲット値までカウントアップさせる処理
   useEffect(() => {
