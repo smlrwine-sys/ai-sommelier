@@ -940,7 +940,6 @@ function CustomerApp() {
   const [activeStep2Tab, setActiveStep2Tab] = useState<'scene' | 'taste'>('scene');
 
   const [resultWine, setResultWine] = useState<any>(null);
-  const [resultWine, setResultWine] = useState<any>(null);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [commentForm, setCommentForm] = useState({ nickname: '', comment: '' });
   const [approvedComments, setApprovedComments] = useState<any[]>([]);
