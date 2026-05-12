@@ -2025,10 +2025,13 @@ function CustomerApp() {
             </section>
 
             {/* ソムリエコメント */}
-            <div className="reveal-4 bg-[#0A1F11] p-10 rounded-[3rem] relative overflow-hidden text-white shadow-2xl">
-               <Quote className="absolute top-6 right-6 w-20 h-20 opacity-10 rotate-180" />
-               <p className="text-[10px] font-black text-amber-500 mb-6 tracking-[0.2em] uppercase">ソムリエのコメント</p>
-               <p className="relative z-10 leading-loose font-serif text-xl italic opacity-95">「{resultWine.comment}」</p>
+            <div className="reveal-4 bg-[#0A1F11] p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] relative overflow-hidden text-white shadow-2xl">
+               <Quote className="absolute top-6 right-6 w-16 h-16 md:w-20 md:h-20 opacity-10 rotate-180" />
+               <p className="text-[10px] font-black text-amber-500 mb-5 tracking-[0.2em] uppercase">ソムリエのコメント</p>
+               {/* 修正：文字サイズを落とし、斜体を解除、行間と文字間隔を広げて視認性を大幅に向上 */}
+               <p className="relative z-10 leading-[2.2] tracking-wider font-serif text-[15px] md:text-base opacity-90">
+                 「{resultWine.comment}」
+               </p>
             </div>
 
             {/* レビュー */}
