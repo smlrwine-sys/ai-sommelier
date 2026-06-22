@@ -1,0 +1,107 @@
+[
+  {
+    "index": 0,
+    "jan_code": "2101010001525",
+    "name": "シャブリ・プルミエ･クリュ・モンマン",
+    "error": {
+      "code": "42501",
+      "message": "new row violates row-level security policy (USING expression) for table \"wines\"",
+      "details": null,
+      "hint": null
+    },
+    "fieldSummary": {
+      "jan_code": {
+        "type": "string",
+        "length": 13,
+        "preview": "2101010001525"
+      },
+      "name": {
+        "type": "string",
+        "length": 18,
+        "preview": "シャブリ・プルミエ･クリュ・モンマン"
+      },
+      "producer": {
+        "type": "string",
+        "length": 10,
+        "preview": "ドメーヌ・ジョルジュ"
+      },
+      "wine_type": {
+        "type": "string",
+        "length": 1,
+        "preview": "白"
+      },
+      "origin": {
+        "type": "string",
+        "length": 11,
+        "preview": "フランス ブルゴーニュ"
+      },
+      "grape": {
+        "type": "string",
+        "length": 5,
+        "preview": "シャルドネ"
+      },
+      "alcohol": {
+        "type": "string",
+        "length": 6,
+        "preview": "13.04%"
+      },
+      "comment": {
+        "type": "string",
+        "length": 131,
+        "preview": "「フランス ブルゴーニュ」のテロワールを表現した上質なシャルドネの白ワイン。グラスに注ぐとミントの葉やリンゴや貝殻（ミネラル）のアロマがふわりと広がります。爽やかな酸味と果実味が美しく調和した、コクのある飲み口。お食事に寄り添い、特別な時間を彩る至福の1本です。"
+      },
+      "image_url": {
+        "type": "string",
+        "length": 62,
+        "preview": "https://www.shiire-wine.com/uploads/products/2101010001525.jpg"
+      },
+      "color_value": {
+        "type": "number",
+        "value": 80
+      },
+      "taste": {
+        "type": "object",
+        "serializedLength": 47,
+        "value": {
+          "body": 3,
+          "acidity": 4,
+          "tannin": 1,
+          "sweetness": 2
+        }
+      },
+      "tags": {
+        "type": "array",
+        "items": 4,
+        "serializedLength": 42,
+        "maxItemLength": 9,
+        "value": [
+          "ワイン初心者",
+          "じっくり味わう",
+          "食事を引き立てたい",
+          "気分を上げたい"
+        ]
+      },
+      "aromas": {
+        "type": "array",
+        "items": 3,
+        "serializedLength": 26,
+        "maxItemLength": 8,
+        "value": [
+          "ミントの葉",
+          "リンゴ",
+          "貝殻（ミネラル）"
+        ]
+      },
+      "scene_retail": {
+        "type": "string",
+        "length": 7,
+        "preview": "自分へのご褒美"
+      },
+      "scene_restaurant": {
+        "type": "string",
+        "length": 6,
+        "preview": "しっかり食事"
+      }
+    }
+  }
+]

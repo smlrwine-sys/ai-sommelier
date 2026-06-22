@@ -1,0 +1,608 @@
+[
+  {
+    "jan_code": "2101010001525",
+    "name": "シャブリ・プルミエ･クリュ・モンマン",
+    "fields": [
+      {
+        "field": "name",
+        "expected": "シャブリ・プルミエ･クリュ・モンマン",
+        "actual": "シャブリ・プルミエ・クリュ・モンマン"
+      },
+      {
+        "field": "alcohol",
+        "expected": "13.04%",
+        "actual": "13.0%"
+      },
+      {
+        "field": "comment",
+        "expected": "「フランス ブルゴーニュ」のテロワールを表現した上質なシャルドネの白ワイン。グラスに注ぐとミントの葉やリンゴや貝殻（ミネラル）のアロマがふわりと広がります。爽やかな酸味と果実味が美しく調和した、コクのある飲み口。お食事に寄り添い、特別な時間を彩る至福の1本です。",
+        "actual": "シャブリの1級畑「モンマン」から生まれる、引き締まった酸と硬質なミネラルが際立つ上質な白ワイン。爽やかなミントや青リンゴのアロマの奥に、特有の「貝殻」を思わせる清涼感のある風味が広がります。生牡蠣や魚介類とのペアリングはまさに至福の体験です。"
+      },
+      {
+        "field": "color_value",
+        "expected": 80,
+        "actual": 85
+      },
+      {
+        "field": "tags",
+        "expected": [
+          "ワイン初心者",
+          "じっくり味わう",
+          "食事を引き立てたい",
+          "気分を上げたい"
+        ],
+        "actual": []
+      },
+      {
+        "field": "aromas",
+        "expected": [
+          "ミントの葉",
+          "リンゴ",
+          "貝殻（ミネラル）"
+        ],
+        "actual": [
+          "ミント",
+          "青リンゴ",
+          "貝殻（ミネラル）"
+        ]
+      },
+      {
+        "field": "scene_retail",
+        "expected": "自分へのご褒美",
+        "actual": null
+      },
+      {
+        "field": "scene_restaurant",
+        "expected": "しっかり食事",
+        "actual": null
+      }
+    ]
+  },
+  {
+    "jan_code": "2101010009828",
+    "name": "シャテル・ビュイ・ブルゴーニュ・シャルドネ",
+    "fields": [
+      {
+        "field": "alcohol",
+        "expected": "12.94%",
+        "actual": "12.9%"
+      },
+      {
+        "field": "comment",
+        "expected": "赤系ベリーの香り",
+        "actual": "ブルゴーニュの豊かなテロワールを表現したシャルドネ。もぎたての青リンゴやグレープフルーツの爽快感の中に、ほのかにパイナップルなどのトロピカルなニュアンスが漂います。まろやかなコクと美しい酸味が調和した、非常にエレガントで親しみやすい白ワインです。"
+      },
+      {
+        "field": "tags",
+        "expected": [
+          "ワイン初心者",
+          "じっくり味わう",
+          "食事を引き立てたい",
+          "気分を上げたい"
+        ],
+        "actual": []
+      },
+      {
+        "field": "aromas",
+        "expected": [
+          "柑橘類",
+          "リンゴ",
+          "パイナップル"
+        ],
+        "actual": [
+          "グレープフルーツ",
+          "青リンゴ",
+          "パイナップル"
+        ]
+      },
+      {
+        "field": "scene_retail",
+        "expected": "自分へのご褒美",
+        "actual": null
+      },
+      {
+        "field": "scene_restaurant",
+        "expected": "しっかり食事",
+        "actual": null
+      }
+    ]
+  },
+  {
+    "jan_code": "2101010009835",
+    "name": "シャテル・ビュイ・ブルゴーニュ・ピノ・ノワール",
+    "fields": [
+      {
+        "field": "alcohol",
+        "expected": "12.68%",
+        "actual": "12.7%"
+      },
+      {
+        "field": "comment",
+        "expected": "1000",
+        "actual": "グラスに注いだ瞬間、スミレの花やフランボワーズ、チェリーなどの華やかな赤系果実の香りがふわりと広がります。ピノ・ノワールらしい繊細な酸味と、シルクのように滑らかなタンニンが特徴的。重すぎず軽やかな飲み口で、和食から軽めの肉料理まで幅広く寄り添う美しい赤ワインです。"
+      },
+      {
+        "field": "color_value",
+        "expected": 40,
+        "actual": 30
+      },
+      {
+        "field": "tags",
+        "expected": [
+          "ワイン初心者",
+          "軽やかに飲む",
+          "食事を引き立てたい",
+          "気分を上げたい"
+        ],
+        "actual": []
+      },
+      {
+        "field": "aromas",
+        "expected": [
+          "スミレ",
+          "さくらんぼ",
+          "フランボワーズ"
+        ],
+        "actual": [
+          "スミレ",
+          "チェリー",
+          "フランボワーズ"
+        ]
+      },
+      {
+        "field": "scene_retail",
+        "expected": "自分へのご褒美",
+        "actual": null
+      },
+      {
+        "field": "scene_restaurant",
+        "expected": "しっかり食事",
+        "actual": null
+      }
+    ]
+  },
+  {
+    "jan_code": "2101020013839",
+    "name": "シャトー・ボー・セクレ",
+    "fields": [
+      {
+        "field": "producer",
+        "expected": "シャトー・ボー・セクレ",
+        "actual": null
+      },
+      {
+        "field": "origin",
+        "expected": "フランス ボルドー",
+        "actual": "フランス　ボルドー　オー・メドック"
+      },
+      {
+        "field": "grape",
+        "expected": "カベルネ・ソーヴィニヨン",
+        "actual": "カベルネソーヴィニヨン60％、メルロー40％"
+      },
+      {
+        "field": "alcohol",
+        "expected": "12.5%",
+        "actual": ""
+      },
+      {
+        "field": "comment",
+        "expected": "「フランス ボルドー」のテロワールを表現した上質なカベルネ・ソーヴィニヨンの赤ワイン。グラスに注ぐとピーマンやカシスやドライフルーツのアロマがふわりと広がります。程よい酸味としっかりとした渋みが調和した重厚なボディ。お食事に寄り添い、特別な時間を彩る至福の1本です。",
+        "actual": "濃密で凝縮した味わいを楽しむ、\nやや重いワイン"
+      },
+      {
+        "field": "image_url",
+        "expected": "https://www.shiire-wine.com/uploads/products/2101020013839.jpg",
+        "actual": "https://wsommelier.com/client_info/WSOMMELIER/itemimage/2101020013839/2101020013839m.jpg"
+      },
+      {
+        "field": "color_value",
+        "expected": 20,
+        "actual": 17
+      },
+      {
+        "field": "taste",
+        "expected": {
+          "body": 4,
+          "acidity": 3,
+          "tannin": 4,
+          "sweetness": 2
+        },
+        "actual": {
+          "body": 4,
+          "tannin": 4,
+          "acidity": 3,
+          "sweetness": 1
+        }
+      },
+      {
+        "field": "aromas",
+        "expected": [
+          "ピーマン",
+          "カシス",
+          "ドライフルーツ"
+        ],
+        "actual": [
+          "カシス",
+          "ドライフルーツ",
+          "ピーマン"
+        ]
+      },
+      {
+        "field": "scene_restaurant",
+        "expected": "軽く一杯",
+        "actual": "しっかり食事"
+      }
+    ]
+  },
+  {
+    "jan_code": "2101120003761",
+    "name": "バルベーラ・ダスティ・スぺリオーレ・ルナ・エ・ファロ",
+    "fields": [
+      {
+        "field": "producer",
+        "expected": "",
+        "actual": "ヴィーテ・コルテ"
+      },
+      {
+        "field": "origin",
+        "expected": "イタリア ピエモンテ",
+        "actual": "イタリア・ピエモンテ州"
+      },
+      {
+        "field": "grape",
+        "expected": "カベルネ・ソーヴィニヨン",
+        "actual": "バルベーラ100％"
+      },
+      {
+        "field": "alcohol",
+        "expected": "13%",
+        "actual": ""
+      },
+      {
+        "field": "comment",
+        "expected": "「イタリア ピエモンテ」のテロワールを表現した上質なカベルネ・ソーヴィニヨンの赤ワイン。グラスに注ぐと豊かな香りがふわりと広がります。程よい酸味としっかりとした渋みが調和した親しみやすいボディ。お食事に寄り添い、特別な時間を彩る至福の1本です。",
+        "actual": "ジャンシス・ロビンソン 15.5(2021年)\nデキャンター誌 92点(2021年)\nガンベロロッソ　トレ・ビッキエリ受賞(2021年)\nルカ・マローニ 97点(2021年)\nバルベーラ種の持つポテンシャルを最大限引き出し、豊かなアロマと骨格の整った 特別なバルベーラのワイン。区画ごと別々のタンクでバルベーラのワインを造り、最終的に複数区画のワインをバランスよくブレンドし、バルベーラの理想形ともいうべきワインを造ります。 "
+      },
+      {
+        "field": "image_url",
+        "expected": "https://www.shiire-wine.com/uploads/products/2101120003761.jpg",
+        "actual": "https://wsommelier.com/client_info/WSOMMELIER/itemimage/2101120003761/2101120003761m21s.jpg"
+      },
+      {
+        "field": "color_value",
+        "expected": 30,
+        "actual": 50
+      },
+      {
+        "field": "taste",
+        "expected": {
+          "body": 3,
+          "acidity": 3,
+          "tannin": 3,
+          "sweetness": 2
+        },
+        "actual": {
+          "body": 3,
+          "tannin": 3,
+          "acidity": 3,
+          "sweetness": 1
+        }
+      },
+      {
+        "field": "aromas",
+        "expected": [],
+        "actual": [
+          "チェリー",
+          "フランボワーズ",
+          "スパイス"
+        ]
+      }
+    ]
+  },
+  {
+    "jan_code": "2101310000990",
+    "name": "クロワッサン　シャルドネ",
+    "fields": [
+      {
+        "field": "name",
+        "expected": "クロワッサン　シャルドネ",
+        "actual": "クロワッサン・シャルドネ"
+      },
+      {
+        "field": "producer",
+        "expected": "ジャン・クロード・ボワセUSA",
+        "actual": null
+      },
+      {
+        "field": "origin",
+        "expected": "アメリカ カリフォルニア",
+        "actual": "AVA　カリフォルニア"
+      },
+      {
+        "field": "grape",
+        "expected": "シャルドネ",
+        "actual": "シャルドネ100％"
+      },
+      {
+        "field": "alcohol",
+        "expected": "13%",
+        "actual": "13％"
+      },
+      {
+        "field": "comment",
+        "expected": "「アメリカ カリフォルニア」のテロワールを表現した上質なシャルドネの白ワイン。グラスに注ぐと豊かな香りがふわりと広がります。爽やかな酸味と果実味が美しく調和した、コクのある飲み口。お食事に寄り添い、特別な時間を彩る至福の1本です。",
+        "actual": "完熟果実のボリューム感とクリーミーな質感。 バタースコッチを思わせるオーク樽のトースト香。 クロワッサンをイメージした、リッチな味わいのシャルドネ。"
+      },
+      {
+        "field": "image_url",
+        "expected": "https://www.shiire-wine.com/uploads/products/2101310000990.jpg",
+        "actual": "https://wsommelier.com/client_info/WSOMMELIER/img/usa/california/boiset_c_03.png"
+      },
+      {
+        "field": "color_value",
+        "expected": 80,
+        "actual": 88
+      },
+      {
+        "field": "taste",
+        "expected": {
+          "body": 3,
+          "acidity": 3,
+          "tannin": 1,
+          "sweetness": 2
+        },
+        "actual": {
+          "body": 5,
+          "tannin": 1,
+          "acidity": 3,
+          "sweetness": 1
+        }
+      },
+      {
+        "field": "tags",
+        "expected": [
+          "ワイン初心者",
+          "じっくり味わう",
+          "食事を引き立てたい",
+          "気分を上げたい"
+        ],
+        "actual": [
+          "仲間とワイワイ",
+          "陽気な気分",
+          "デート",
+          "友達飲み",
+          "週末贅沢"
+        ]
+      },
+      {
+        "field": "aromas",
+        "expected": [],
+        "actual": [
+          "ハチミツ",
+          "パイナップル",
+          "パン"
+        ]
+      },
+      {
+        "field": "scene_retail",
+        "expected": "自分へのご褒美",
+        "actual": null
+      },
+      {
+        "field": "scene_restaurant",
+        "expected": "しっかり食事",
+        "actual": null
+      }
+    ]
+  },
+  {
+    "jan_code": "2101310001003",
+    "name": "タルトレット　ピノ・ノワール",
+    "fields": [
+      {
+        "field": "name",
+        "expected": "タルトレット　ピノ・ノワール",
+        "actual": "タルトレット・ピノ・ノワール"
+      },
+      {
+        "field": "origin",
+        "expected": "アメリカ カリフォルニア",
+        "actual": "AVA　カリフォルニア"
+      },
+      {
+        "field": "grape",
+        "expected": "カベルネ・ソーヴィニヨン",
+        "actual": "ピノ・ノワール"
+      },
+      {
+        "field": "alcohol",
+        "expected": "13%",
+        "actual": "13.5%"
+      },
+      {
+        "field": "comment",
+        "expected": "「アメリカ カリフォルニア」のテロワールを表現した上質なカベルネ・ソーヴィニヨンの赤ワイン。グラスに注ぐと豊かな香りがふわりと広がります。程よい酸味としっかりとした渋みが調和した親しみやすいボディ。お食事に寄り添い、特別な時間を彩る至福の1本です。",
+        "actual": "口いっぱいに広がるイチゴ、ラズベリー、ブルーベリー。 複雑さを添えるスパイスやブラウンシュガーの風味。 ベリータルトをイメージした、華やかな味わいのピノ・ノワール"
+      },
+      {
+        "field": "image_url",
+        "expected": "https://www.shiire-wine.com/uploads/products/2101310001003.jpg",
+        "actual": "https://wsommelier.com/client_info/WSOMMELIER/img/usa/california/boiset_p_03.png"
+      },
+      {
+        "field": "color_value",
+        "expected": 30,
+        "actual": 19
+      },
+      {
+        "field": "tags",
+        "expected": [
+          "中級～上級者",
+          "じっくり味わう",
+          "食事を引き立てたい",
+          "気分を上げたい"
+        ],
+        "actual": [
+          "週末贅沢",
+          "デート",
+          "バーベキュー",
+          "記念日"
+        ]
+      },
+      {
+        "field": "aromas",
+        "expected": [],
+        "actual": [
+          "フランボワーズ",
+          "リコリス",
+          "チェリー"
+        ]
+      },
+      {
+        "field": "scene_retail",
+        "expected": "自分へのご褒美",
+        "actual": null
+      },
+      {
+        "field": "scene_restaurant",
+        "expected": "しっかり食事",
+        "actual": null
+      }
+    ]
+  },
+  {
+    "jan_code": "2101320000263",
+    "name": "シドニー・ウィルコックス・ヴァインドライド・シラーズ",
+    "fields": [
+      {
+        "field": "origin",
+        "expected": "オーストラリア 南オーストラリア",
+        "actual": "オーストラリア、サウス・オーストラリア州"
+      },
+      {
+        "field": "grape",
+        "expected": "カベルネ・ソーヴィニヨン",
+        "actual": "シラーズ"
+      },
+      {
+        "field": "alcohol",
+        "expected": "16%",
+        "actual": "14"
+      },
+      {
+        "field": "comment",
+        "expected": "「オーストラリア 南オーストラリア」のテロワールを表現した上質なカベルネ・ソーヴィニヨンの赤ワイン。グラスに注ぐと豊かな香りがふわりと広がります。程よい酸味としっかりとした渋みが調和した親しみやすいボディ。お食事に寄り添い、特別な時間を彩る至福の1本です。",
+        "actual": "オーストラリアワイン評価の第一人者ジェームス・ハリデーが最高評価を下し、「ダークホースワイナリー」としてトップ10に入賞。ブラックベリーやカシスの果実味と、クローヴや黒コショウ、リコリスなどのスパイスの風味が一体となって、非常にリッチな味わいのフルボディに仕上がっています。牛肉や羊肉、ラム肉など赤身の肉を使った料理によく合います。\nシンプルなバーベキューや厚切りの牛肉ステーキ、ラムカツなど、肉の味わいをダイレクトに味わう料理にぴったりです。"
+      },
+      {
+        "field": "image_url",
+        "expected": "https://www.shiire-wine.com/uploads/products/2101320000263.jpg",
+        "actual": "https://wsommelier.com/client_info/WSOMMELIER/itemimage/2101320000263/2101320000263.jpg"
+      },
+      {
+        "field": "color_value",
+        "expected": 30,
+        "actual": 37
+      },
+      {
+        "field": "taste",
+        "expected": {
+          "body": 3,
+          "acidity": 3,
+          "tannin": 3,
+          "sweetness": 2
+        },
+        "actual": {
+          "body": 5,
+          "tannin": 4,
+          "acidity": 3,
+          "sweetness": 2
+        }
+      },
+      {
+        "field": "aromas",
+        "expected": [],
+        "actual": [
+          "カシス",
+          "インク",
+          "プラム"
+        ]
+      },
+      {
+        "field": "scene_retail",
+        "expected": "自分へのご褒美",
+        "actual": "家飲み"
+      }
+    ]
+  },
+  {
+    "jan_code": "2101330000031",
+    "name": "オーガニック・ソーヴィニョン・ブラン",
+    "fields": [
+      {
+        "field": "producer",
+        "expected": "ミスティ・コーヴ",
+        "actual": "ミスティ・コーヴ・ワインズ"
+      },
+      {
+        "field": "origin",
+        "expected": "ニュージーランド マールボロ",
+        "actual": "ニュージーランド　マールボロ"
+      },
+      {
+        "field": "grape",
+        "expected": "シャルドネ",
+        "actual": "ソーヴィニョンブラン100％"
+      },
+      {
+        "field": "alcohol",
+        "expected": "13.5%",
+        "actual": "13"
+      },
+      {
+        "field": "comment",
+        "expected": "「ニュージーランド マールボロ」のテロワールを表現した上質なシャルドネの白ワイン。グラスに注ぐと青草やグレープフルーツや貝殻（ミネラル）のアロマがふわりと広がります。爽やかな酸味と果実味が美しく調和した、コクのある飲み口。お食事に寄り添い、特別な時間を彩る至福の1本です。",
+        "actual": "世界的なオーガニック認証機関BioGro認証取得。マスターオブワインも絶賛するマールボロ産ソーヴィニヨン・ブラン。イエローダイヤを思わせる輝きと透明感。草原の爽やかな香りの中に硬質なミネラルとわずかな塩味を感じる。丸みのある口当たり、それでいてシャープな酸をしっかりと感じることができる。シトラス、青リンゴ系の爽快なフルーツ感の後に、絞りたてグレープフルーツのようなわずかな苦みをもったジューシーさが複雑性を感じさせ、二口目を誘う。"
+      },
+      {
+        "field": "image_url",
+        "expected": "https://www.shiire-wine.com/uploads/products/2101330000031.jpg",
+        "actual": "https://wsommelier.com/client_info/WSOMMELIER/itemimage/2101330000031/2101330000031_500.jpg"
+      },
+      {
+        "field": "color_value",
+        "expected": 80,
+        "actual": 58
+      },
+      {
+        "field": "taste",
+        "expected": {
+          "body": 3,
+          "acidity": 5,
+          "tannin": 1,
+          "sweetness": 2
+        },
+        "actual": {
+          "body": 3,
+          "tannin": 1,
+          "acidity": 5,
+          "sweetness": 1
+        }
+      },
+      {
+        "field": "aromas",
+        "expected": [
+          "青草",
+          "グレープフルーツ",
+          "貝殻（ミネラル）"
+        ],
+        "actual": [
+          "ハーブ",
+          "グレープフルーツ",
+          "貝殻（ミネラル）"
+        ]
+      }
+    ]
+  }
+]

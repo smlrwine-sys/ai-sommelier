@@ -1,0 +1,398 @@
+[
+  {
+    "jan_code": "2101080000695",
+    "name": "ペルレ・ロゼ",
+    "origin": "フランス シュッド・ウエスト",
+    "wine_type": "ロゼ",
+    "inferred_grape": "メルロ、カベルネ・フラン",
+    "confidence": 0.74,
+    "source": "regional-blend"
+  },
+  {
+    "jan_code": "2101080000701",
+    "name": "スレドレ",
+    "origin": "フランス シュッド・ウエスト",
+    "wine_type": "ロゼ",
+    "inferred_grape": "メルロ、カベルネ・フラン",
+    "confidence": 0.74,
+    "source": "regional-blend"
+  },
+  {
+    "jan_code": "2101120003549",
+    "name": "モーロ",
+    "origin": "イタリア フリウリ・ヴェネツィア・ジューリア",
+    "wine_type": "赤",
+    "inferred_grape": "レフォスコ",
+    "confidence": 0.65,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "2101120003860",
+    "name": "ウリッセ・ビアンコ",
+    "origin": "イタリア アブルッツォ",
+    "wine_type": "白",
+    "inferred_grape": "ペコリーノ",
+    "confidence": 0.72,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "2101140000252",
+    "name": "セルナ・インペリアル・ホーベン",
+    "origin": "スペイン",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "2101140000474",
+    "name": "アゴラ・ラグリマ",
+    "origin": "スペイン カスティーリャ・ラ・マンチャ",
+    "wine_type": "白",
+    "inferred_grape": "アイレン",
+    "confidence": 0.68,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "2101140000504",
+    "name": "プラ・サヴィア・デ・アルスピデ",
+    "origin": "スペイン カスティーリャ・ラ・マンチャ",
+    "wine_type": "赤",
+    "inferred_grape": "テンプラニーリョ",
+    "confidence": 0.72,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "2101140001624",
+    "name": "チスパス・ブリュット",
+    "origin": "スペイン カリニェナ",
+    "wine_type": "泡",
+    "inferred_grape": "マカベオ",
+    "confidence": 0.7,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "2101140001631",
+    "name": "チスパス・ブランコ",
+    "origin": "スペイン カリニェナ",
+    "wine_type": "白",
+    "inferred_grape": "マカベオ",
+    "confidence": 0.7,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "2101140001662",
+    "name": "ボティホ・ブランコ",
+    "origin": "スペイン カリニェナ",
+    "wine_type": "白",
+    "inferred_grape": "マカベオ",
+    "confidence": 0.7,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "2101140001945",
+    "name": "マルタ・シベリーナ",
+    "origin": "スペイン カスティーリャ・イ・レオン",
+    "wine_type": "白",
+    "inferred_grape": "ヴェルデホ",
+    "confidence": 0.72,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "2101140002218",
+    "name": "エステバン・マーティン・ブランコ",
+    "origin": "スペイン アラゴン",
+    "wine_type": "白",
+    "inferred_grape": "マカベオ",
+    "confidence": 0.7,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "2101310000440",
+    "name": "フォグ・マウンテン・フィールド・ブレンド",
+    "origin": "アメリカ カリフォルニア",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "2101310000464",
+    "name": "リース・ソノマ・ブレンド",
+    "origin": "アメリカ カリフォルニア",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "2101310000600",
+    "name": "フレンチー",
+    "origin": "アメリカ カリフォルニア",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "2101310000662",
+    "name": "ラピス・ルナ・レッドブレンド",
+    "origin": "アメリカ カリフォルニア",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "2101310000792",
+    "name": "ラピス・ルナ・リミテッド・リザーブ・レッドブレンド",
+    "origin": "アメリカ カリフォルニア",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "2101320000041",
+    "name": "テルツェット",
+    "origin": "オーストラリア 南オーストラリア",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "2101320000225",
+    "name": "シドニー・ウィルコックス・ホワイト・フィールドブレンド",
+    "origin": "オーストラリア 南オーストラリア",
+    "wine_type": "白",
+    "inferred_grape": "シャルドネ",
+    "confidence": 0.45,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "2101340000144",
+    "name": "コラゾン・デル・インディオ",
+    "origin": "チリ セントラル・ヴァレー",
+    "wine_type": "赤",
+    "inferred_grape": "カルメネール 40%、カベルネ・ソーヴィニョン35%、シラー25%",
+    "confidence": 0.7,
+    "source": "existing-specific"
+  },
+  {
+    "jan_code": "2101340001332",
+    "name": "ラブ・レッド",
+    "origin": "チリ セントラル・ヴァレー",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "2101340001400",
+    "name": "クロ・デ・ファ",
+    "origin": "チリ マイポ・ヴァレー",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "2101340001943",
+    "name": "クロ・デュ・リカン",
+    "origin": "チリ コルチャグア・ヴァレー",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "2101340002018",
+    "name": "クロ・デ・ファ",
+    "origin": "チリ マイポ・ヴァレー",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "2101380000029",
+    "name": "ぺニーナ・ロゼ",
+    "origin": "スロヴェニア ポドラウイエ",
+    "wine_type": "ロゼ",
+    "inferred_grape": "ピノ・ノワール",
+    "confidence": 0.72,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "2101380000050",
+    "name": "コニツァン・ポルスーホ",
+    "origin": "スロヴェニア ポドラウイエ",
+    "wine_type": "白",
+    "inferred_grape": "リースリング",
+    "confidence": 0.62,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "2109030000078",
+    "name": "ラピス・ルナ・ワインオープナー",
+    "origin": "アメリカ カリフォルニア",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン",
+    "confidence": 0,
+    "source": "non-wine-product-preserved"
+  },
+  {
+    "jan_code": "2109110000578",
+    "name": "ラピス・ルナ・マスク",
+    "origin": "アメリカ カリフォルニア",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン",
+    "confidence": 0,
+    "source": "non-wine-product-preserved"
+  },
+  {
+    "jan_code": "2109110000585",
+    "name": "ラピス・ルナ・ローラーバッグ",
+    "origin": "アメリカ カリフォルニア",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン",
+    "confidence": 0,
+    "source": "non-wine-product-preserved"
+  },
+  {
+    "jan_code": "3760293758442",
+    "name": "ル・シズィエム・エレマン・クリマ気候",
+    "origin": "中国",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン、マルスラン",
+    "confidence": 0.62,
+    "source": "regional-blend"
+  },
+  {
+    "jan_code": "3760293758459",
+    "name": "ル・シズィエム・エレマン・ナチュール自然",
+    "origin": "中国",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン、マルスラン",
+    "confidence": 0.62,
+    "source": "regional-blend"
+  },
+  {
+    "jan_code": "3760293758466",
+    "name": "ル・シズィエム・エレマン・テロワール風土",
+    "origin": "中国",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン、マルスラン",
+    "confidence": 0.62,
+    "source": "regional-blend"
+  },
+  {
+    "jan_code": "3760293758473",
+    "name": "ル・シズィエム・エレマン・ラ・ヴィ生命",
+    "origin": "中国",
+    "wine_type": "白",
+    "inferred_grape": "シャルドネ",
+    "confidence": 0.58,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "4571531977179",
+    "name": "クロ・デ・ファ",
+    "origin": "チリ セントラル・ヴァレー",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "4571531977186",
+    "name": "カラク",
+    "origin": "チリ セントラル・ヴァレー",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "4571691910276",
+    "name": "ヴァン・ダムール・ブラン",
+    "origin": "フランス",
+    "wine_type": "白",
+    "inferred_grape": "シャルドネ",
+    "confidence": 0.45,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "4571691910498",
+    "name": "サングリア・デ・アルスピデ",
+    "origin": "スペイン",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "4571691913383",
+    "name": "カラク",
+    "origin": "チリ セントラル・ヴァレー",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "4571691913758",
+    "name": "クロ・デ・ファ",
+    "origin": "チリ マイポ・ヴァレー",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  },
+  {
+    "jan_code": "4571691914243",
+    "name": "イマジン",
+    "origin": "フランス",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・フラン75%、カベルネ・ソーヴィニヨン25%",
+    "confidence": 0.7,
+    "source": "existing-specific"
+  },
+  {
+    "jan_code": "4571691914267",
+    "name": "ヴォルト・ファス",
+    "origin": "フランス",
+    "wine_type": "オレンジ",
+    "inferred_grape": "ソーヴィニヨン・ブラン",
+    "confidence": 0.7,
+    "source": "existing-specific"
+  },
+  {
+    "jan_code": "6009679750227",
+    "name": "ソフト・スムース・レンジ・レッド",
+    "origin": "南アフリカ",
+    "wine_type": "赤",
+    "inferred_grape": "ピノタージュ",
+    "confidence": 0.72,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "6009679751590",
+    "name": "ソフト・スムース・レンジ・ホワイト",
+    "origin": "南アフリカ",
+    "wine_type": "白",
+    "inferred_grape": "シュナン・ブラン",
+    "confidence": 0.72,
+    "source": "region-type"
+  },
+  {
+    "jan_code": "8437013277525",
+    "name": "マジック・アワー・レッド",
+    "origin": "スペイン ヴィノ・デ・ラ・ティエラ・デ・カスティーリャ",
+    "wine_type": "赤",
+    "inferred_grape": "カベルネ・ソーヴィニヨン主体のブレンド",
+    "confidence": 0.4,
+    "source": "type-fallback"
+  }
+]

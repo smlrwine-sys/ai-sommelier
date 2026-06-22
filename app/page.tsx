@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 // reCAPTCHAをインポート（追加）
 import ReCAPTCHA from "react-google-recaptcha";
 import { 
   ChevronLeft, MapPin, Sparkles, Store, Utensils, Heart, ThumbsUp, Quote, Grape, Leaf, ChefHat, 
   Building, Wine, Plus, Trash2, Save, Settings, Hand, Smile, ArrowRight, MessageCircle, Bookmark,
-  Droplets, Flame
+  Droplets, Flame, Upload
 } from 'lucide-react';
 
 
@@ -115,6 +115,109 @@ const AROMA_IMAGES: Record<string, string> = {
   "マンゴー": "https://wsommelier.com/client_info/WSOMMELIER/img/content/aroma_mango.png"
 };
 const DEFAULT_AROMA_IMAGE = "https://wsommelier.com/client_info/WSOMMELIER/img/content/aroma_herb.png";
+
+const DUMMY_WINES = [
+  {
+    id: '2101010004571',
+    jan_code: '2101010004571',
+    name: 'ブラン・ド・ブラン',
+    producer: 'ピフォー・ヴァン・エ・ドメーヌ',
+    wine_type: '泡',
+    origin: 'フランス ブルゴーニュ',
+    grape: 'シャルドネ',
+    alcohol: '11.5%',
+    body: 2,
+    acidity: 4,
+    tannin: 1,
+    sweetness: 2,
+    color_value: 90,
+    aromas: ['ハーブ', 'グレープフルーツ', '青リンゴ'],
+    image_url: 'https://www.shiire-wine.com/uploads/products/2101010004571.jpg',
+    comment: '細やかな泡立ちと爽やかなハーブの香りが心地よい、ブルゴーニュ産ブラン・ド・ブラン。グレープフルーツや青リンゴを思わせるフレッシュな果実味と、引き締まった酸が絶妙なバランスを保ちます。アペリティフとしてはもちろん、前菜とも相性抜群の1本です。',
+    taste: { body: 2, acidity: 4, tannin: 1, sweetness: 2 },
+    tags: ['軽やかに飲む', '気分を上げたい'],
+  },
+  {
+    id: '2101010001525',
+    jan_code: '2101010001525',
+    name: 'シャブリ・プルミエ・クリュ・モンマン',
+    producer: 'ドメーヌ・ジョルジュ',
+    wine_type: '白',
+    origin: 'フランス ブルゴーニュ',
+    grape: 'シャルドネ',
+    alcohol: '13.0%',
+    body: 3,
+    acidity: 4,
+    tannin: 1,
+    sweetness: 2,
+    color_value: 85,
+    aromas: ['ミント', '青リンゴ', '貝殻（ミネラル）'],
+    image_url: 'https://www.shiire-wine.com/uploads/products/2101010001525.jpg',
+    comment: 'シャブリの1級畑「モンマン」から生まれる、引き締まった酸と硬質なミネラルが際立つ上質な白ワイン。爽やかなミントや青リンゴのアロマの奥に、特有の「貝殻」を思わせる清涼感のある風味が広がります。生牡蠣や魚介類とのペアリングはまさに至福の体験です。',
+    taste: { body: 3, acidity: 4, tannin: 1, sweetness: 2 },
+    tags: ['じっくり味わう', '気分を上げたい', '食事を引き立てたい'],
+  },
+  {
+    id: '2101010009828',
+    jan_code: '2101010009828',
+    name: 'シャテル・ビュイ・ブルゴーニュ・シャルドネ',
+    producer: 'カーヴ・デ・ヴィニュロン・ド・ビュクシー',
+    wine_type: '白',
+    origin: 'フランス ブルゴーニュ',
+    grape: 'シャルドネ',
+    alcohol: '12.9%',
+    body: 3,
+    acidity: 4,
+    tannin: 1,
+    sweetness: 2,
+    color_value: 80,
+    aromas: ['グレープフルーツ', '青リンゴ', 'パイナップル'],
+    image_url: 'https://www.shiire-wine.com/uploads/products/2101010009828.jpg',
+    comment: 'ブルゴーニュの豊かなテロワールを表現したシャルドネ。もぎたての青リンゴやグレープフルーツの爽快感の中に、ほのかにパイナップルなどのトロピカルなニュアンスが漂います。まろやかなコクと美しい酸味が調和した、非常にエレガントで親しみやすい白ワインです。',
+    taste: { body: 3, acidity: 4, tannin: 1, sweetness: 2 },
+    tags: ['じっくり味わう', '気分を上げたい', '食事を引き立てたい'],
+  },
+  {
+    id: '2101010009835',
+    jan_code: '2101010009835',
+    name: 'シャテル・ビュイ・ブルゴーニュ・ピノ・ノワール',
+    producer: 'カーヴ・デ・ヴィニュロン・ド・ビュクシー',
+    wine_type: '赤',
+    origin: 'フランス ブルゴーニュ',
+    grape: 'ピノ・ノワール',
+    alcohol: '12.7%',
+    body: 2,
+    acidity: 4,
+    tannin: 2,
+    sweetness: 2,
+    color_value: 30,
+    aromas: ['スミレ', 'チェリー', 'フランボワーズ'],
+    image_url: 'https://www.shiire-wine.com/uploads/products/2101010009835.jpg',
+    comment: 'グラスに注いだ瞬間、スミレの花やフランボワーズ、チェリーなどの華やかな赤系果実の香りがふわりと広がります。ピノ・ノワールらしい繊細な酸味と、シルクのように滑らかなタンニンが特徴的。重すぎず軽やかな飲み口で、和食から軽めの肉料理まで幅広く寄り添う美しい赤ワインです。',
+    taste: { body: 2, acidity: 4, tannin: 2, sweetness: 2 },
+    tags: ['ワイン初心者', '軽やかに飲む', '気分を上げたい', 'デート・記念日'],
+  },
+  {
+    id: '2101120004201',
+    jan_code: '2101120004201',
+    name: 'レ・ディフェーゼ',
+    producer: 'テヌータ・サン・グイード',
+    wine_type: '赤',
+    origin: 'イタリア トスカーナ',
+    grape: 'カベルネ・ソーヴィニヨン、サンジョヴェーゼ',
+    alcohol: '14.0%',
+    body: 3,
+    acidity: 3,
+    tannin: 3,
+    sweetness: 3,
+    color_value: 10,
+    aromas: ['ピーマン', 'カシス', 'ドライフルーツ'],
+    image_url: 'https://www.shiire-wine.com/uploads/products/2101120004201.jpg',
+    comment: 'イタリアワインの至宝「サッシカイア」を手掛ける名門が造るサードラベル。カシスの凝縮した果実味に、ドライフルーツの甘みとピーマンのような青草のニュアンスが複雑に絡み合います。骨格のあるタンニンと豊かなコクが広がり、お肉料理をより一層引き立てる本格派の1本です。',
+    taste: { body: 3, acidity: 3, tannin: 3, sweetness: 3 },
+    tags: ['中級～上級者', 'じっくり味わう', 'リラックス', '接待・ビジネス'],
+  },
+];
 
 // --- 各種選択肢リスト ---
 
@@ -442,7 +545,7 @@ function AdminMasterView({ setMode }: any) {
   const [allStores, setAllStores] = useState<any[]>([]);
   const [allWines, setAllWines] = useState<any[]>([]);
   const [storeSearch, setStoreSearch] = useState({ name: '', type: '', genre: '', area: '' });
-  const [wineSearch, setWineSearch] = useState({ jan: '', type: '', name: '' });
+  const [wineSearch, setWineSearch] = useState({ jan: '', type: '', name: '', producer: '' });
 
   // --- フォーム用State (新規・編集 共通) ---
   const initialStore = {
@@ -464,6 +567,9 @@ function AdminMasterView({ setMode }: any) {
   const [isAddingWine, setIsAddingWine] = useState(false);
   const [editingStore, setEditingStore] = useState<any>(null);
   const [editingWine, setEditingWine] = useState<any>(null);
+  const [isImportingWines, setIsImportingWines] = useState(false);
+  const [wineImportProgress, setWineImportProgress] = useState('');
+  const wineImportInputRef = useRef<HTMLInputElement | null>(null);
 
   const loadMasterData = async () => {
     const { data: st } = await supabase.from('stores').select('*').order('created_at', { ascending: false });
@@ -503,9 +609,148 @@ function AdminMasterView({ setMode }: any) {
     else { alert('完了しました'); setIsAddingWine(false); setEditingWine(null); loadMasterData(); }
   };
 
+  const getImportObject = (value: unknown): Record<string, unknown> => {
+    return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  };
+
+  const parseWineImportRows = (jsonText: string): unknown[] => {
+    const parsed: unknown = JSON.parse(jsonText);
+    if (Array.isArray(parsed)) return parsed;
+    const parsedObject = getImportObject(parsed);
+    for (const key of ['wines', 'data', 'items', 'rows']) {
+      if (Array.isArray(parsedObject[key])) return parsedObject[key];
+    }
+    throw new Error('JSONはワイン配列、または wines/data/items/rows の配列を持つ形式にしてください。');
+  };
+
+  const toImportString = (value: unknown) => value == null ? '' : String(value).trim();
+
+  const toImportNumber = (value: unknown, fallback: number) => {
+    const numberValue = Number(value);
+    return Number.isFinite(numberValue) ? numberValue : fallback;
+  };
+
+  const toImportStringArray = (value: unknown) => {
+    if (Array.isArray(value)) return value.map(v => toImportString(v)).filter(Boolean);
+    if (typeof value === 'string') return value.split(/[、,]/).map(v => v.trim()).filter(Boolean);
+    return [];
+  };
+
+  const normalizeImportImageUrl = (value: unknown) => {
+    const text = toImportString(value);
+    const markdownLink = text.match(/^\[[^\]]+\]\((https?:\/\/[^)]+)\)$/i);
+    if (markdownLink) return markdownLink[1].trim();
+    const url = text.match(/https?:\/\/[^\s)]+/i);
+    return url ? url[0].trim() : text;
+  };
+
+  const normalizeWineForImport = (rawWine: unknown, index: number): Record<string, unknown> => {
+    const wineObject = getImportObject(rawWine);
+    const tasteObject = getImportObject(wineObject.taste);
+    const janCode = toImportString(wineObject.jan_code ?? wineObject.janCode ?? wineObject.jan ?? wineObject.id);
+    if (!janCode) throw new Error(`${index + 1}件目に jan_code がありません。`);
+
+    const taste = {
+      body: toImportNumber(tasteObject.body ?? wineObject.body, 3),
+      acidity: toImportNumber(tasteObject.acidity ?? wineObject.acidity, 3),
+      tannin: toImportNumber(tasteObject.tannin ?? wineObject.tannin, 3),
+      sweetness: toImportNumber(tasteObject.sweetness ?? wineObject.sweetness, 3),
+    };
+
+    const importWine: Record<string, unknown> = {
+      jan_code: janCode,
+      name: toImportString(wineObject.name),
+      producer: toImportString(wineObject.producer),
+      wine_type: toImportString(wineObject.wine_type ?? wineObject.type) || '赤',
+      origin: toImportString(wineObject.origin),
+      grape: toImportString(wineObject.grape),
+      alcohol: toImportString(wineObject.alcohol),
+      comment: toImportString(wineObject.comment),
+      image_url: normalizeImportImageUrl(wineObject.image_url ?? wineObject.imageUrl),
+      color_value: toImportNumber(wineObject.color_value ?? wineObject.colorValue, 50),
+      taste,
+      tags: toImportStringArray(wineObject.tags),
+      aromas: toImportStringArray(wineObject.aromas),
+    };
+
+    if (wineObject.scene_retail) importWine.scene_retail = toImportString(wineObject.scene_retail);
+    if (wineObject.scene_restaurant) importWine.scene_restaurant = toImportString(wineObject.scene_restaurant);
+
+    return importWine;
+  };
+
+  const handleWineJsonImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.json')) {
+      alert('JSONファイルを選択してください。');
+      return;
+    }
+
+    setIsImportingWines(true);
+    setWineImportProgress('JSONを読み込んでいます...');
+
+    try {
+      const jsonText = await file.text();
+      const rows = parseWineImportRows(jsonText);
+      if (rows.length === 0) throw new Error('インポート対象のワインが0件です。');
+
+      const importWines = rows.map((row, index) => normalizeWineForImport(row, index));
+      const chunkSize = 100;
+      let importedCount = 0;
+
+      for (let start = 0; start < importWines.length; start += chunkSize) {
+        const chunk = importWines.slice(start, start + chunkSize);
+        setWineImportProgress(`${importedCount}/${importWines.length}件を登録中...`);
+
+        const { error } = await supabase
+          .from('wines')
+          .upsert(chunk, { onConflict: 'jan_code' });
+
+        if (error) throw error;
+        importedCount += chunk.length;
+        setWineImportProgress(`${importedCount}/${importWines.length}件を登録しました`);
+      }
+
+      await loadMasterData();
+      alert(`ワインマスターの一括登録が完了しました。\n登録・更新件数: ${importWines.length}件`);
+    } catch (error: unknown) {
+      console.error('Wine import error:', error);
+      alert(`一括登録エラー: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsImportingWines(false);
+      setWineImportProgress('');
+    }
+  };
+
   const deleteItem = async (table: string, id: string) => {
     if (!confirm("本当に削除しますか？紐付いているデータもすべて消去されます。")) return;
-    
+
+    if (table === 'wines') {
+      const adminPassword = prompt('ワインを削除するため、管理者パスワードを再入力してください。');
+      if (!adminPassword) return;
+
+      try {
+        const response = await fetch(`/api/admin/wines/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-password': adminPassword },
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'ワインを削除できませんでした。');
+        }
+
+        alert('ワインと紐付くデータを削除しました。');
+        await loadMasterData();
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        alert(`削除できませんでした。\n理由: ${message}`);
+      }
+      return;
+    }
+
     const { error } = await supabase.from(table).delete().eq('id', id);
     
     if (error) {
@@ -520,7 +765,36 @@ function AdminMasterView({ setMode }: any) {
 
   // --- 検索フィルター ---
   const filteredStores = allStores.filter(s => s.name.includes(storeSearch.name) && (storeSearch.type==='' || s.business_type===storeSearch.type) && (storeSearch.genre==='' || s.genre===storeSearch.genre) && (storeSearch.area==='' || s.area===storeSearch.area));
-  const filteredWines = allWines.filter(w => (w.jan_code||'').includes(wineSearch.jan) && (wineSearch.type==='' || w.wine_type===wineSearch.type) && w.name.includes(wineSearch.name));
+  const filteredWines = useMemo(() => {
+    return allWines
+      .filter(w =>
+        String(w.jan_code || '').includes(wineSearch.jan)
+        && (wineSearch.type === '' || w.wine_type === wineSearch.type)
+        && String(w.name || '').includes(wineSearch.name)
+        && String(w.producer || '').includes(wineSearch.producer)
+      )
+      .sort((wineA, wineB) => {
+        const producerA = String(wineA.producer || '').trim();
+        const producerB = String(wineB.producer || '').trim();
+
+        if (!producerA && producerB) return 1;
+        if (producerA && !producerB) return -1;
+
+        const producerOrder = wineNameCollator.compare(producerA, producerB);
+        if (producerOrder !== 0) return producerOrder;
+
+        const nameOrder = wineNameCollator.compare(
+          String(wineA.name || '').trim(),
+          String(wineB.name || '').trim()
+        );
+        if (nameOrder !== 0) return nameOrder;
+
+        return wineNameCollator.compare(
+          String(wineA.jan_code || '').trim(),
+          String(wineB.jan_code || '').trim()
+        );
+      });
+  }, [allWines, wineSearch]);
 
   
 
@@ -568,10 +842,40 @@ function AdminMasterView({ setMode }: any) {
       <section className="space-y-6">
         <div className="flex justify-between items-end border-b-2 border-slate-300 pb-2">
           <h2 className="text-xl font-bold flex items-center gap-2"><Wine/> ワインマスター管理</h2>
-          <button onClick={() => { setIsAddingWine(!isAddingWine); setWineForm(initialWine); }} className="bg-rose-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow">
-            {isAddingWine ? '閉じる' : '＋ 新規ワインを登録'}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              ref={wineImportInputRef}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={handleWineJsonImport}
+              disabled={isImportingWines}
+            />
+            <button
+              type="button"
+              onClick={() => wineImportInputRef.current?.click()}
+              disabled={isImportingWines}
+              className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Upload size={16} />
+              {isImportingWines ? '一括登録中...' : 'JSON一括登録'}
+            </button>
+            <button
+              onClick={() => { setIsAddingWine(!isAddingWine); setWineForm(initialWine); }}
+              disabled={isImportingWines}
+              className="bg-rose-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus size={16} />
+              {isAddingWine ? '閉じる' : '新規ワインを登録'}
+            </button>
+          </div>
         </div>
+        {isImportingWines && (
+          <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-4 py-3 flex items-center gap-3 text-sm font-bold">
+            <div className="w-4 h-4 border-2 border-rose-200 border-t-rose-700 rounded-full animate-spin" />
+            <span>{wineImportProgress || '一括登録中...'}</span>
+          </div>
+        )}
         {isAddingWine && (
           <div className="bg-white p-8 rounded-2xl shadow-xl border-2 border-rose-200 space-y-6 animate-in fade-in zoom-in-95">
             <WineFormFields form={wineForm} setForm={setWineForm} />
@@ -579,19 +883,21 @@ function AdminMasterView({ setMode }: any) {
           </div>
         )}
         {/* ワイン検索 */}
-        <div className="bg-slate-200 p-4 rounded-xl grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="bg-slate-200 p-4 rounded-xl grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           <input className="p-2 rounded text-sm" placeholder="JAN検索" value={wineSearch.jan} onChange={e=>setWineSearch({...wineSearch, jan:e.target.value})} />
           <select className="p-2 rounded text-sm" value={wineSearch.type} onChange={e=>setWineSearch({...wineSearch, type:e.target.value})}><option value="">全タイプ</option><option value="赤">赤</option><option value="白">白</option><option value="泡">泡</option><option value="ロゼ">ロゼ</option><option value="オレンジ">オレンジ</option></select>
           <input className="p-2 rounded text-sm" placeholder="ワイン名検索" value={wineSearch.name} onChange={e=>setWineSearch({...wineSearch, name:e.target.value})} />
+          <input className="p-2 rounded text-sm" placeholder="生産者名検索" value={wineSearch.producer} onChange={e=>setWineSearch({...wineSearch, producer:e.target.value})} />
         </div>
         <div className="bg-white rounded-xl shadow overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b"><tr><th className="p-3 font-bold">JAN</th><th className="p-3 font-bold">ワイン名</th><th className="p-3 font-bold">タイプ</th><th className="p-3 text-right">操作</th></tr></thead>
+            <thead className="bg-slate-50 border-b"><tr><th className="p-3 font-bold">JAN</th><th className="p-3 font-bold">ワイン名</th><th className="p-3 font-bold">生産者名</th><th className="p-3 font-bold">タイプ</th><th className="p-3 text-right">操作</th></tr></thead>
             <tbody>
               {filteredWines.map(w => (
                 <tr key={w.id} className="border-b hover:bg-slate-50">
                   <td className="p-3 font-mono text-xs">{w.jan_code}</td>
                   <td className="p-3 font-bold">{w.name}</td>
+                  <td className="p-3 text-slate-600">{String(w.producer || '').trim() || <span className="text-slate-400">生産者未設定</span>}</td>
                   <td className="p-3"><span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100">{w.wine_type}</span></td>
                   <td className="p-3 text-right"><div className="flex justify-end gap-1"><button onClick={()=>setEditingWine(w)} className="p-2 text-slate-400 hover:text-rose-700"><Settings size={16}/></button><button onClick={()=>deleteItem('wines', w.id)} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={16}/></button></div></td>
                 </tr>
@@ -637,6 +943,96 @@ function AdminMasterView({ setMode }: any) {
 // ==========================================
 // 【2】店舗管理（各店用）
 // ==========================================
+type StoreWineOption = {
+  id?: string;
+  jan_code?: string | number;
+  name?: string;
+  producer?: string;
+  wine_type?: string;
+};
+
+type WineProducerGroup = {
+  key: string;
+  label: string;
+  wines: StoreWineOption[];
+};
+
+const wineNameCollator = new Intl.Collator('ja-JP', {
+  sensitivity: 'base',
+  numeric: true,
+});
+
+const groupWinesByProducer = (wines: StoreWineOption[]): WineProducerGroup[] => {
+  const sortedWines = [...wines].sort((wineA, wineB) => {
+    const producerA = String(wineA.producer || '').trim();
+    const producerB = String(wineB.producer || '').trim();
+
+    if (!producerA && producerB) return 1;
+    if (producerA && !producerB) return -1;
+
+    const producerOrder = wineNameCollator.compare(producerA, producerB);
+    if (producerOrder !== 0) return producerOrder;
+
+    const nameOrder = wineNameCollator.compare(
+      String(wineA.name || '').trim(),
+      String(wineB.name || '').trim()
+    );
+    if (nameOrder !== 0) return nameOrder;
+
+    return wineNameCollator.compare(
+      String(wineA.jan_code || '').trim(),
+      String(wineB.jan_code || '').trim()
+    );
+  });
+
+  const groups = new Map<string, WineProducerGroup>();
+
+  sortedWines.forEach(wine => {
+    const producer = String(wine.producer || '').trim();
+    const groupKey = producer || '__producer_unset__';
+
+    if (!groups.has(groupKey)) {
+      const producerLabel = producer || '生産者未設定';
+      const initial = producer ? Array.from(producer)[0] : '他';
+      groups.set(groupKey, {
+        key: groupKey,
+        label: `【${initial} - ${producerLabel}】`,
+        wines: [],
+      });
+    }
+
+    groups.get(groupKey)?.wines.push(wine);
+  });
+
+  return Array.from(groups.values());
+};
+
+function GroupedWineOptions({
+  groups,
+  valueField,
+}: {
+  groups: WineProducerGroup[];
+  valueField: 'id' | 'jan_code';
+}) {
+  return groups.map(group => (
+    <optgroup key={group.key} label={group.label}>
+      {group.wines.map(wine => {
+        const value = String(wine[valueField] || '').trim();
+        const producer = String(wine.producer || '').trim() || '生産者未設定';
+        const name = String(wine.name || '').trim() || '名称未設定';
+        const wineType = String(wine.wine_type || '').trim() || '種別未設定';
+        const janCode = String(wine.jan_code || '').trim();
+
+        return (
+          <option key={`${valueField}-${value}`} value={value}>
+            [{wineType}] {name} ｜ {producer} (JAN:{janCode})
+          </option>
+        );
+      })}
+    </optgroup>
+  ));
+}
+
 function AdminStoreView({ setMode, storeId }: any) {
   const [winesMaster, setWinesMaster] = useState<any[]>([]);
   const [currentStore, setCurrentStore] = useState<any>(null);
@@ -755,6 +1151,20 @@ function AdminStoreView({ setMode, storeId }: any) {
   const [displayScore, setDisplayScore] = useState(0);
   // ↓追加：いいねしたワインIDのリスト
   const [likedWines, setLikedWines] = useState<string[]>([]);
+  const inventoryJanCodes = useMemo(
+    () => new Set(inventoryList.map(inv => String(inv.jan_code || '').trim())),
+    [inventoryList]
+  );
+  const allWineProducerGroups = useMemo(
+    () => groupWinesByProducer(winesMaster),
+    [winesMaster]
+  );
+  const inventoryWineProducerGroups = useMemo(
+    () => groupWinesByProducer(
+      winesMaster.filter(wine => inventoryJanCodes.has(String(wine.jan_code || '').trim()))
+    ),
+    [inventoryJanCodes, winesMaster]
+  );
 
   return (
     <div className="min-h-screen bg-emerald-50 p-6 text-slate-800 pb-20 relative text-left">
@@ -802,10 +1212,7 @@ function AdminStoreView({ setMode, storeId }: any) {
                 <label className="text-[10px] font-bold text-slate-400 ml-1">この料理に合うワイン (任意)</label>
                 <select className={inputClass} value={dishForm.pairing_wine_id} onChange={e => setDishForm({...dishForm, pairing_wine_id: e.target.value})}>
                   <option value="">-- 選択しない --</option>
-                  {/* 修正：店舗に登録済みのワイン（inventoryListにあるもの）だけを表示 */}
-                  {winesMaster.filter(w => inventoryList.some(inv => String(inv.jan_code).trim() === String(w.jan_code).trim())).map(w => (
-                    <option key={w.id} value={w.id}>[{w.wine_type}] {w.name}</option>
-                  ))}
+                  <GroupedWineOptions groups={inventoryWineProducerGroups} valueField="id" />
                 </select>
               </div>
               <button onClick={saveDish} className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl shadow hover:bg-emerald-700 transition-all">料理を追加</button>
@@ -817,7 +1224,7 @@ function AdminStoreView({ setMode, storeId }: any) {
             <div className="grid grid-cols-1 gap-3">
               <select className={inputClass} value={invForm.jan_code} onChange={e => setInvForm({...invForm, jan_code: e.target.value})}>
                 <option value="">-- ワインを選択 --</option>
-                {winesMaster.map(w => <option key={w.jan_code} value={w.jan_code}>[{w.wine_type}] {w.name} (JAN:{w.jan_code})</option>)}
+                <GroupedWineOptions groups={allWineProducerGroups} valueField="jan_code" />
               </select>
               <div className="flex gap-2">
                 <input type="number" className={inputClass} placeholder="ボトル価格" value={invForm.bottle} onChange={e => setInvForm({...invForm, bottle: e.target.value})} />
@@ -848,10 +1255,7 @@ function AdminStoreView({ setMode, storeId }: any) {
                   <label className="text-[10px] font-bold text-slate-400 ml-1">この献立に合わせるワイン</label>
                   <select className={inputClass} value={tagForm.pairing_wine_id} onChange={e => setTagForm({...tagForm, pairing_wine_id: e.target.value})}>
                     <option value="">-- ワインを選択 --</option>
-                    {/* 修正：店舗に登録済みのワイン（inventoryListにあるもの）だけを表示 */}
-                    {winesMaster.filter(w => inventoryList.some(inv => String(inv.jan_code).trim() === String(w.jan_code).trim())).map(w => (
-                      <option key={w.id} value={w.id}>[{w.wine_type}] {w.name}</option>
-                    ))}
+                    <GroupedWineOptions groups={inventoryWineProducerGroups} valueField="id" />
                   </select>
                 </div>
                 <button onClick={saveMenuTag} className="w-full py-3 bg-rose-600 text-white font-bold rounded-xl shadow hover:bg-rose-700 transition-all">献立タグを追加</button>
@@ -1087,13 +1491,15 @@ function CustomerApp() {
 
       const { data: inventory } = await supabase.from('store_inventory').select('*').eq('store_id', currentStore.id);
       const { data: allWines } = await supabase.from('wines').select('*');
+      const masterWines = allWines && allWines.length > 0 ? allWines : DUMMY_WINES;
       
-      const displayWines = inventory && inventory.length > 0 
+      const matchedInventoryWines = inventory && inventory.length > 0 
         ? inventory.map(inv => {
-            const master = allWines?.find(w => String(w.jan_code).trim() === String(inv.jan_code).trim());
+            const master = masterWines.find(w => String(w.jan_code).trim() === String(inv.jan_code).trim());
             return master ? { ...master, bottle_price: inv.bottle_price, glass_price: inv.glass_price } : null;
           }).filter(w => w !== null)
-        : allWines || [];
+        : masterWines;
+      const displayWines = matchedInventoryWines.length > 0 ? matchedInventoryWines : DUMMY_WINES;
       setWines(displayWines);
 
       // 保存済みワイン（マイセラー）の読み込み
@@ -1108,7 +1514,7 @@ function CustomerApp() {
       const urlScore = params.get('score'); // ←追加：URLからスコアを取得
 
       if (wineJan) {
-        const matched = allWines?.find(w => String(w.jan_code).trim() === wineJan);
+        const matched = displayWines.find(w => String(w.jan_code).trim() === wineJan);
         if (matched) {
           const inv = inventory?.find(i => String(i.jan_code).trim() === wineJan);
           const finalWine = inv ? { ...matched, bottle_price: inv.bottle_price, glass_price: inv.glass_price } : matched;
