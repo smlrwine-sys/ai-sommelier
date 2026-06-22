@@ -7,7 +7,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { 
   ChevronLeft, MapPin, Sparkles, Store, Utensils, Heart, ThumbsUp, Quote, Grape, Leaf, ChefHat, 
   Building, Wine, Plus, Trash2, Save, Settings, Hand, Smile, ArrowRight, MessageCircle, Bookmark,
-  Droplets, Flame, Upload
+  Droplets, Flame, Upload, ImageOff
 } from 'lucide-react';
 
 
@@ -380,6 +380,48 @@ const CyberDial = ({ value, onChange, labelLeft, labelRight, title, icon: Icon, 
 
 const inputClass = "w-full p-2 border rounded text-sm text-slate-800 bg-white mb-3";
 const labelClass = "block text-xs font-bold text-slate-500 mb-1";
+
+function WineThumbnail({
+  src,
+  alt,
+  size = 'table',
+}: {
+  src?: string | null;
+  alt: string;
+  size?: 'table' | 'card';
+}) {
+  const [hasError, setHasError] = useState(false);
+  const rawUrl = String(src || '').trim();
+  const markdownUrl = rawUrl.match(/^\[[^\]]*\]\((https?:\/\/[^)]+)\)$/i);
+  const imageUrl = markdownUrl?.[1] || rawUrl;
+  const frameClass = size === 'card' ? 'w-12 h-16' : 'w-10 h-14';
+
+  if (!imageUrl || hasError) {
+    return (
+      <div
+        className={`${frameClass} flex-shrink-0 rounded border border-dashed border-slate-300 bg-slate-50 text-slate-400 flex flex-col items-center justify-center gap-0.5`}
+        title={!imageUrl ? '画像URL未設定' : '画像を読み込めませんでした'}
+        aria-label={!imageUrl ? '画像URL未設定' : '画像リンク切れ'}
+      >
+        <ImageOff size={14} aria-hidden="true" />
+        <span className="text-[7px] font-bold leading-none">No Image</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${frameClass} flex-shrink-0 rounded border border-slate-200 bg-white overflow-hidden`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={imageUrl}
+        alt={`${alt}のボトル画像`}
+        loading="lazy"
+        className="w-full h-full object-contain p-1"
+        onError={() => setHasError(true)}
+      />
+    </div>
+  );
+}
 
 
 // --- UIコンポーネント: 店舗フォーム ---
@@ -927,11 +969,18 @@ function AdminMasterView({ setMode }: any) {
         </div>
         <div className="bg-white rounded-xl shadow overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b"><tr><th className="p-3 font-bold">JAN</th><th className="p-3 font-bold">ワイン名</th><th className="p-3 font-bold">生産者名</th><th className="p-3 font-bold">タイプ</th><th className="p-3 text-right">操作</th></tr></thead>
+            <thead className="bg-slate-50 border-b"><tr><th className="p-3 font-bold">JAN</th><th className="p-3 font-bold">画像</th><th className="p-3 font-bold">ワイン名</th><th className="p-3 font-bold">生産者名</th><th className="p-3 font-bold">タイプ</th><th className="p-3 text-right">操作</th></tr></thead>
             <tbody>
               {filteredWines.map(w => (
                 <tr key={w.id} className="border-b hover:bg-slate-50">
                   <td className="p-3 font-mono text-xs">{w.jan_code}</td>
+                  <td className="p-3">
+                    <WineThumbnail
+                      key={`master-thumbnail-${w.id}-${w.image_url || 'empty'}`}
+                      src={w.image_url}
+                      alt={w.name || 'ワイン'}
+                    />
+                  </td>
                   <td className="p-3 font-bold">{w.name}</td>
                   <td className="p-3 text-slate-600">{String(w.producer || '').trim() || <span className="text-slate-400">生産者未設定</span>}</td>
                   <td className="p-3"><span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100">{w.wine_type}</span></td>
@@ -1324,8 +1373,14 @@ function AdminStoreView({ setMode, storeId }: any) {
               {inventoryList.map(inv => {
                 const wine = winesMaster.find(w => String(w.jan_code).trim() === String(inv.jan_code).trim());
                 return (
-                  <div key={inv.id} className="bg-white p-4 rounded-xl border border-indigo-100 flex justify-between items-center shadow-sm">
-                    <div className="flex-1">
+                  <div key={inv.id} className="bg-white p-4 rounded-xl border border-indigo-100 flex items-center gap-3 shadow-sm">
+                    <WineThumbnail
+                      key={`inventory-thumbnail-${inv.id}-${wine?.image_url || 'empty'}`}
+                      src={wine?.image_url}
+                      alt={wine?.name || `JAN ${inv.jan_code}`}
+                      size="card"
+                    />
+                    <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm">{wine?.name || `JAN: ${inv.jan_code} (名前不一致)`}</p>
                       <p className="text-[10px] opacity-60 font-bold">ボトル: ¥{inv.bottle_price?.toLocaleString()} / グラス: ¥{inv.glass_price?.toLocaleString()}</p>
                     </div>
