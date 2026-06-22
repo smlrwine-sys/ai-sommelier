@@ -603,10 +603,46 @@ function AdminMasterView({ setMode }: any) {
 
   const saveWine = async (data: any, id?: string) => {
     if (!data.jan_code) return alert('JAN必須');
-    const action = id ? supabase.from('wines').update(data).eq('id', id) : supabase.from('wines').insert([data]);
-    const { error } = await action;
-    if (error) alert(error.message);
-    else { alert('完了しました'); setIsAddingWine(false); setEditingWine(null); loadMasterData(); }
+
+    if (id) {
+      const adminPassword = prompt('ワイン情報を更新するため、管理者パスワードを再入力してください。');
+      if (!adminPassword) return;
+
+      try {
+        const response = await fetch(`/api/admin/wines/${encodeURIComponent(id)}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-password': adminPassword,
+          },
+          body: JSON.stringify(data),
+        });
+        const result = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          throw new Error(result?.error || `サーバーエラー (${response.status})`);
+        }
+
+        alert('完了しました');
+        setEditingWine(null);
+        await loadMasterData();
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        alert(`更新に失敗しました: ${message}`);
+      }
+      return;
+    }
+
+    const { error } = await supabase.from('wines').insert([data]);
+    if (error) {
+      alert(`登録に失敗しました: ${error.message}`);
+      return;
+    }
+
+    alert('完了しました');
+    setIsAddingWine(false);
+    setEditingWine(null);
+    await loadMasterData();
   };
 
   const getImportObject = (value: unknown): Record<string, unknown> => {
