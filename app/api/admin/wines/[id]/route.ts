@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { timingSafeEqual } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import { getAdminAuthError } from '@/lib/adminAuth';
 
 export const runtime = 'nodejs';
 
@@ -32,7 +32,7 @@ export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  const authError = getAuthError(request);
+  const authError = getAdminAuthError(request);
   if (authError) return authError;
 
   const supabaseAdmin = getSupabaseAdminClient();
@@ -122,7 +122,7 @@ export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  const authError = getAuthError(request);
+  const authError = getAdminAuthError(request);
   if (authError) return authError;
 
   const supabaseAdmin = getSupabaseAdminClient();
@@ -155,27 +155,6 @@ export async function DELETE(
   return NextResponse.json({ deletedId: data.id });
 }
 
-function getAuthError(request: NextRequest) {
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  const suppliedPassword = request.headers.get('x-admin-password');
-
-  if (!adminPassword) {
-    return NextResponse.json(
-      { error: 'サーバー環境変数 ADMIN_PASSWORD が設定されていません。' },
-      { status: 500 }
-    );
-  }
-
-  if (!suppliedPassword || !passwordsMatch(suppliedPassword, adminPassword)) {
-    return NextResponse.json(
-      { error: '管理者パスワードが正しくありません。' },
-      { status: 401 }
-    );
-  }
-
-  return null;
-}
-
 function getSupabaseAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -202,12 +181,4 @@ function createSupabaseErrorResponse(error: {
     },
     { status: 400 }
   );
-}
-
-function passwordsMatch(suppliedPassword: string, adminPassword: string) {
-  const suppliedBuffer = Buffer.from(suppliedPassword);
-  const adminBuffer = Buffer.from(adminPassword);
-
-  return suppliedBuffer.length === adminBuffer.length
-    && timingSafeEqual(suppliedBuffer, adminBuffer);
 }

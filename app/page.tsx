@@ -115,6 +115,7 @@ const AROMA_IMAGES: Record<string, string> = {
   "マンゴー": "https://wsommelier.com/client_info/WSOMMELIER/img/content/aroma_mango.png"
 };
 const DEFAULT_AROMA_IMAGE = "https://wsommelier.com/client_info/WSOMMELIER/img/content/aroma_herb.png";
+const ADMIN_SESSION_EMAIL_STORAGE_KEY = 'ai-sommelier-admin-email';
 
 const DUMMY_WINES = [
   {
@@ -582,7 +583,7 @@ function WineThumbnail({
 // ==========================================
 // 【1】マスター管理（ソムリエ社用）
 // ==========================================
-function AdminMasterView({ setMode }: any) {
+function AdminMasterView({ setMode, isAuthenticated }: any) {
   // --- データリストと検索用State ---
   const [allStores, setAllStores] = useState<any[]>([]);
   const [allWines, setAllWines] = useState<any[]>([]);
@@ -647,16 +648,19 @@ function AdminMasterView({ setMode }: any) {
     if (!data.jan_code) return alert('JAN必須');
 
     if (id) {
-      const adminPassword = prompt('ワイン情報を更新するため、管理者パスワードを再入力してください。');
-      if (!adminPassword) return;
+      if (!isAuthenticated) {
+        alert('管理者ログインが必要です。');
+        setMode('portal');
+        return;
+      }
 
       try {
         const response = await fetch(`/api/admin/wines/${encodeURIComponent(id)}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            'x-admin-password': adminPassword,
           },
+          credentials: 'same-origin',
           body: JSON.stringify(data),
         });
         const result = await response.json().catch(() => null);
@@ -806,18 +810,21 @@ function AdminMasterView({ setMode }: any) {
     if (!confirm("本当に削除しますか？紐付いているデータもすべて消去されます。")) return;
 
     if (table === 'wines') {
-      const adminPassword = prompt('ワインを削除するため、管理者パスワードを再入力してください。');
-      if (!adminPassword) return;
+      if (!isAuthenticated) {
+        alert('管理者ログインが必要です。');
+        setMode('portal');
+        return;
+      }
 
       try {
         const response = await fetch(`/api/admin/wines/${encodeURIComponent(id)}`, {
           method: 'DELETE',
-          headers: { 'x-admin-password': adminPassword },
+          credentials: 'same-origin',
         });
-        const result = await response.json();
+        const result = await response.json().catch(() => null);
 
         if (!response.ok) {
-          throw new Error(result.error || 'ワインを削除できませんでした。');
+          throw new Error(result?.error || 'ワインを削除できませんでした。');
         }
 
         alert('ワインと紐付くデータを削除しました。');
@@ -984,7 +991,16 @@ function AdminMasterView({ setMode }: any) {
                   <td className="p-3 font-bold">{w.name}</td>
                   <td className="p-3 text-slate-600">{String(w.producer || '').trim() || <span className="text-slate-400">生産者未設定</span>}</td>
                   <td className="p-3"><span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100">{w.wine_type}</span></td>
-                  <td className="p-3 text-right"><div className="flex justify-end gap-1"><button onClick={()=>setEditingWine(w)} className="p-2 text-slate-400 hover:text-rose-700"><Settings size={16}/></button><button onClick={()=>deleteItem('wines', w.id)} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={16}/></button></div></td>
+                  <td className="p-3 text-right">
+                    {isAuthenticated ? (
+                      <div className="flex justify-end gap-1">
+                        <button onClick={()=>setEditingWine(w)} className="p-2 text-slate-400 hover:text-rose-700"><Settings size={16}/></button>
+                        <button onClick={()=>deleteItem('wines', w.id)} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={16}/></button>
+                      </div>
+                    ) : (
+                      <span className="text-xs font-bold text-slate-400">ログイン必要</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -1433,20 +1449,93 @@ function AdminStoreView({ setMode, storeId }: any) {
 // 【3】システムポータル（入り口 ＋ ログイン維持）
 function PortalView({ setMode, setActiveStoreId, isAuthenticated, setIsAuthenticated }: any) {
   const [stores, setStores] = useState<any[]>([]);
+  const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
-  
-  // セキュリティ対策：.env.local からパスワードを取得（未設定時は sommelier2026 を予備で使用）
-  const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'sommelier2026';
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => { if (isAuthenticated) supabase.from('stores').select('*').then(({data}) => setStores(data || [])); }, [isAuthenticated]);
+
+  const handleLogin = async () => {
+    if (!emailInput.trim() || !passwordInput) {
+      alert('メールアドレスとパスワードを入力してください。');
+      return;
+    }
+
+    setIsLoggingIn(true);
+    try {
+      const response = await fetch('/api/admin/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          email: emailInput.trim(),
+          password: passwordInput,
+        }),
+      });
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok || !result?.authenticated) {
+        throw new Error(result?.error || 'ログインに失敗しました。');
+      }
+
+      localStorage.setItem(ADMIN_SESSION_EMAIL_STORAGE_KEY, result.email || emailInput.trim());
+      setIsAuthenticated(true);
+      setPasswordInput('');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      alert(message);
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await fetch('/api/admin/session', {
+      method: 'DELETE',
+      credentials: 'same-origin',
+    }).catch(() => null);
+    localStorage.removeItem(ADMIN_SESSION_EMAIL_STORAGE_KEY);
+    setIsAuthenticated(false);
+    setStores([]);
+    setMode('portal');
+  };
 
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
         <div className="bg-white p-8 rounded-2xl w-full max-w-sm space-y-6 text-slate-800 shadow-2xl">
           <h2 className="text-xl font-bold text-center flex items-center justify-center gap-2"><Settings/> 管理者ログイン</h2>
-          <input type="password" placeholder="パスワードを入力" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} className="w-full p-3 border rounded-xl" onKeyDown={e => { if (e.key === 'Enter' && passwordInput === ADMIN_PASSWORD) setIsAuthenticated(true); }} />
-          <button onClick={() => { if (passwordInput === ADMIN_PASSWORD) setIsAuthenticated(true); else alert('パスワードが違います'); }} className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl" >ログイン</button>
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleLogin();
+            }}
+          >
+            <input
+              type="email"
+              placeholder="メールアドレス"
+              value={emailInput}
+              onChange={e => setEmailInput(e.target.value)}
+              autoComplete="username"
+              className="w-full p-3 border rounded-xl"
+            />
+            <input
+              type="password"
+              placeholder="パスワードを入力"
+              value={passwordInput}
+              onChange={e => setPasswordInput(e.target.value)}
+              autoComplete="current-password"
+              className="w-full p-3 border rounded-xl"
+            />
+            <button
+              type="submit"
+              disabled={isLoggingIn}
+              className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoggingIn ? 'ログイン中...' : 'ログイン'}
+            </button>
+          </form>
         </div>
       </div>
     );
@@ -1457,6 +1546,9 @@ function PortalView({ setMode, setActiveStoreId, isAuthenticated, setIsAuthentic
       <Store size={48} className="mb-4 text-amber-500" />
       <h1 className="text-3xl font-black mb-8 tracking-widest uppercase">System Portal</h1>
       <div className="w-full max-w-md space-y-4">
+        <div className="flex justify-end">
+          <button onClick={handleLogout} className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold transition-colors">ログアウト</button>
+        </div>
         <button onClick={() => setMode('admin_master')} className="w-full py-4 bg-indigo-600 rounded-xl font-bold flex items-center justify-center gap-2"><Building size={20}/> マスター管理画面へ</button>
         <div className="border-t border-white/20 pt-6 mt-6 space-y-4 text-left">
           <p className="text-sm opacity-60 font-bold ml-1">登録店舗一覧</p>
@@ -2953,11 +3045,33 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('mode') === 'portal') setMode('portal');
+
+      fetch('/api/admin/session', { credentials: 'same-origin' })
+        .then(response => response.ok ? response.json() : { authenticated: false })
+        .then(result => {
+          const authenticated = Boolean(result?.authenticated);
+          setIsAuthenticated(authenticated);
+          if (authenticated && result?.email) {
+            localStorage.setItem(ADMIN_SESSION_EMAIL_STORAGE_KEY, result.email);
+          } else {
+            localStorage.removeItem(ADMIN_SESSION_EMAIL_STORAGE_KEY);
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem(ADMIN_SESSION_EMAIL_STORAGE_KEY);
+          setIsAuthenticated(false);
+        });
     }
   }, []);
 
   if (mode === 'portal') return <PortalView setMode={setMode} setActiveStoreId={setActiveStoreId} isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />;
-  if (mode === 'admin_master') return <AdminMasterView setMode={setMode} />;
-  if (mode === 'admin_store') return <AdminStoreView setMode={setMode} storeId={activeStoreId} />;
+  if (mode === 'admin_master') {
+    if (!isAuthenticated) return <PortalView setMode={setMode} setActiveStoreId={setActiveStoreId} isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />;
+    return <AdminMasterView setMode={setMode} isAuthenticated={isAuthenticated} />;
+  }
+  if (mode === 'admin_store') {
+    if (!isAuthenticated) return <PortalView setMode={setMode} setActiveStoreId={setActiveStoreId} isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />;
+    return <AdminStoreView setMode={setMode} storeId={activeStoreId} />;
+  }
   return <CustomerApp />;
 }
